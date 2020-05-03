@@ -1,0 +1,37 @@
+GIT COMMANDS
+
+//Used to start a git repository in a folder, git tracks changes in that folder
+git init
+
+//Checks in on the status of the files in the folder and the staging area
+git status
+
+//Checks the repository logs, of pass commits
+git log
+
+
+//Adds untracked files into staging area, this area is where files with changes to be committed are held
+git add FILENAME
+
+//Adds all untracked files, into staging area
+git add .
+
+//Commits the files in the staging area and saves them in the repository, -m is used to include a message with the commit
+git commit -m "Commit message"
+
+
+//Restores a commit in the repository, the hash of the commit needs to be given as an input
+git checkout HASH    (example: cabaebda798a03584bd529aca53ce5b30d8cc66e)
+
+//Changes to the selected branch, master is the main one
+git checkout BRANCH
+
+
+//Gives a list of branches, Master is the main branch of the tree
+git branch
+
+//Creates a branch!
+git branch NEW_BRANCH_NAME
+
+//Merges a branch to current selected branch
+git merge BRANCH_NAME
