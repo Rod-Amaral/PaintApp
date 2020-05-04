@@ -10,7 +10,7 @@ static const QBrush Brush = Qt::darkGreen;
 QPen childWindow::pen(Brush, Pen_size);
 
 childWindow::childWindow(QWidget *parent) 
-	: QWidget(parent, Qt::Window), PixelMap(Y_leng, std::vector<bool>(X_leng))
+	: QWidget(parent, Qt::Window), PixelMap(X_leng * Y_leng)
 {
 	setFixedSize(X_leng,Y_leng);
 }
@@ -20,32 +20,17 @@ childWindow::~childWindow()
 
 void childWindow::paintEvent(QPaintEvent *event)
 {
-	static uint16_t i,j;
-
-	//painter.begin(this) begins painting
-	for(j=0; j<Y_leng; j++)
-	{
-		for(i=0; i<X_leng; i++)
-			if(PixelMap[j][i])
-			{
-				painter.begin(this);
-				painter.setPen(pen);
-				painter.drawPoint(i,j);
-				painter.end();
-			}
-	}
-	//painter.end() is necessary! to release resources used in painting.
+	painter.begin(this);
+	painter.setPen(pen);
+	painter.drawPoints(PixelMap);
+	painter.end();
 }
 
 void childWindow::setPoint(int x, int y)
 {
-	if( (x<X_leng && y<Y_leng && x>0 && y>0) && (!PixelMap[y][x]) )
-	{
-		//out << "Coords( " << x << ',' << y << " )\n";
-		PixelMap[y][x] = true;
-		update();
-		emit pointChanged(x,y);
-	}
+	PixelMap << QPoint(x,y);
+	update();
+	emit pointChanged(x,y);
 }
 
 
@@ -59,28 +44,24 @@ MahWindow::MahWindow(childWindow *parent) : childWindow(parent)
 MahWindow::~MahWindow()
 {}
 
+
 void MahWindow::paintEvent(QPaintEvent *event)
 {
-	static uint16_t i,j;
-	for(j=0; j<Y_leng; j++)
-	{
-		for(i=0; i<X_leng; i++)
-			if(PixelMap[j][i])
-			{
-				painter.begin(this);
-				painter.setPen(pen);
-				painter.drawPoint(i,j);
-				painter.end();
-			}
-	}
+	painter.begin(this);
+	painter.setPen(pen);
+	painter.drawPoints(PixelMap);
+	painter.end();
 }
 
 void MahWindow::mouseMoveEvent(QMouseEvent *event)
 {
-	setPoint( event->x(),event->y() );
+	if( (event->x()<X_leng && event->y()<Y_leng && event->x()>0 && event->y()>0) )
+		setPoint( event->x(),event->y() );
 }
 void MahWindow::mousePressEvent(QMouseEvent *event)
 {
-	setPoint( event->x(),event->y() ) ;
+	if( (event->x()<X_leng && event->y()<Y_leng && event->x()>0 && event->y()>0) )
+		setPoint( event->x(),event->y() );
+	//&& (!PixelMap.containsPoint(QPoint(event->x(),event->y()), Qt::OddEvenFill))
 }
 

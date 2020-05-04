@@ -33,7 +33,7 @@ public:
 	QPainter painter;
 
 	//Map of painted pixels
-	std::vector<std::vector<bool>> PixelMap;
+	QPolygon PixelMap;
 
 protected:
 	void paintEvent(QPaintEvent *event);
