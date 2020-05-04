@@ -25,23 +25,25 @@ public:
 	static const uint16_t X_leng = 700;
 	static const uint16_t Y_leng = 800;
 	//static uint16_t X_menu = 100;
+    uint8_t c_colour;
 
 	//Not made static, for signal and slots mechanism
-	int x, y;
+    QPoint point;
 
+    //painter used to display Image
 	QPainter painter;
 
-	//Map of painted pixels
-    std::vector<std::vector<bool>> PixelMap;
+    //ehre the Image is held
+    QImage Image;
 
 protected:
 	void paintEvent(QPaintEvent *event);
 
 public slots:
-	void setPoint(int x, int y);
+    void setPoint(QPoint point);
 
 signals:
-	void pointChanged(int x, int y);
+    void pointChanged(QPoint point);
 };
 
 #endif
