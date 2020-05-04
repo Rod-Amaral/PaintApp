@@ -20,8 +20,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 QT += core gui widgets
 
 # Input
-SOURCES += Paint.cpp WindowClass.cpp
-HEADERS += WindowClass.h
+SOURCES += Paint.cpp MainWindow.cpp ChildWindow.cpp
+HEADERS += MainWindow.h ChildWindow.h
+
+DISTFILES += \
+    CHANGELOGS.txt
 
 
 

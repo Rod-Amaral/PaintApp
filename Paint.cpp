@@ -1,20 +1,21 @@
 #include <QApplication>
 #include <QTextStream>
-#include "WindowClass.h"
+#include "ChildWindow.h"
+#include "MainWindow.h"
 
 static QTextStream out(stderr); //Debug
 
 int main(int argc, char** argv)
 {
 	QApplication app(argc, argv);
-	MahWindow window1;
-	childWindow window2(&window1);
+    MainWindow window1;
+    ChildWindow window2(&window1);
 
 	window1.setWindowTitle("Main Window");
 	window2.setWindowTitle("Child Window");
 
-	QObject::connect(&window1,&MahWindow::pointChanged,
-					&window2,&childWindow::setPoint);
+    QObject::connect(&window1,&MainWindow::pointChanged,
+                    &window2,&ChildWindow::setPoint);
 
 
 	window2.show();

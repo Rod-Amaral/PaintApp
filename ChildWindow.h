@@ -1,7 +1,6 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-//#include <map> look into this!
 #include <vector>
 
 #include <QBrush>
@@ -13,13 +12,13 @@
 
 
 //Child window class
-class childWindow : public QWidget
+class ChildWindow : public QWidget
 {
 	Q_OBJECT
 
 public:
-	childWindow(QWidget *parent = 0);
-	~childWindow();
+    ChildWindow(QWidget *parent = 0);
+    ~ChildWindow();
 
 	static QPen pen; //Pen Style
 
@@ -43,22 +42,6 @@ public slots:
 
 signals:
 	void pointChanged(int x, int y);
-};
-
-
-//Main Window class
-class MahWindow : public childWindow
-{
-	Q_OBJECT
-
-public:
-	MahWindow(childWindow *parent = 0);
-	~MahWindow();
-
-protected:
-	void paintEvent(QPaintEvent *event);
-	void mousePressEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
 };
 
 #endif

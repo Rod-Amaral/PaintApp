@@ -1,13 +1,6 @@
 by: Rod-Amaral
 
-- Parameterized some values, like window size
-- Created 2D Pixel map of booleans, where I store where mouse coordinates to where user mouse has been / pressed
-- Now instead of sending a QPoint to the child window, the program sends two integers, x and y, of a mouse event coordinates
-- PaintEvent function, now goes through the Pixel map, and looks for point to where to draw
-- Made it so it ignored mouse event coordinates, outside the window size
-- Removed toggle variable, no longer needed
-
-PROBLEMS / BUGS
-
-- Paint event is slow, It can't keep up with fast mouse movements, so not all corrdinates are painted
-- Giving an array of coordinates to paint, may be faster
+- Minor optimizations
+- Went back to 2D array of booleans
+- Seperated the window classes, now MainWindow and ChildWindow
+- Started using Qt Creator
