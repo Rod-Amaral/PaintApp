@@ -1,6 +1,3 @@
 by: Rod-Amaral
 
-- Minor optimizations
-- Went back to 2D array of booleans
-- Seperated the window classes, now MainWindow and ChildWindow
-- Started using Qt Creator
+- Further organization

@@ -1,5 +1,5 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef CHILDWINDOW_H
+#define CHILDWINDOW_H
 
 #include <vector>
 
@@ -32,7 +32,7 @@ public:
 	QPainter painter;
 
 	//Map of painted pixels
-	std::vector<std::vector<bool>> PixelMap;
+    std::vector<std::vector<bool>> PixelMap;
 
 protected:
 	void paintEvent(QPaintEvent *event);
