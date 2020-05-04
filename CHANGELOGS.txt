@@ -1,7 +1,3 @@
--Created two windows
--made a dot being drawn on a screen
--added capability to move the dot with the mouse
--made the dot being displayed on both windows, with slots and signals
--made the parent window the only window being capable of interaction
--made the child window close, with the main window, but not vice-versa
--cleaned up code, improved it
+by: Rod-Amaral
+
+- Further organization
