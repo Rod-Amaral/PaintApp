@@ -2,12 +2,15 @@
 #define WINDOW_H
 
 //#include <map> look into this!
+#include <vector>
+
 #include <QBrush>
 #include <QPen>
 #include <QWidget>
 #include <QMouseEvent>
 #include <QPoint>
 #include <QPainter>
+
 
 //Child window class
 class childWindow : public QWidget
@@ -19,21 +22,27 @@ public:
 	~childWindow();
 
 	static QPen pen; //Pen Style
-	static bool toggle; //Used to only paint, after mouse is pressed once
+
+	static const uint16_t X_leng = 700;
+	static const uint16_t Y_leng = 800;
+	//static uint16_t X_menu = 100;
 
 	//Not made static, for signal and slots mechanism
-	QPoint point;
-	//Not made static, for multithread implementation
+	int x, y;
+
 	QPainter painter;
-	
+
+	//Map of painted pixels
+	std::vector<std::vector<bool>> PixelMap;
+
 protected:
 	void paintEvent(QPaintEvent *event);
 
 public slots:
-	void setQPoint(QPoint p);
+	void setPoint(int x, int y);
 
 signals:
-	void pointChanged(QPoint p);
+	void pointChanged(int x, int y);
 };
 
 

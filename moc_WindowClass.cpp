@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_childWindow_t {
-    QByteArrayData data[5];
-    char stringdata0[38];
+    QByteArrayData data[6];
+    char stringdata0[39];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,11 +34,12 @@ static const qt_meta_stringdata_childWindow_t qt_meta_stringdata_childWindow = {
 QT_MOC_LITERAL(0, 0, 11), // "childWindow"
 QT_MOC_LITERAL(1, 12, 12), // "pointChanged"
 QT_MOC_LITERAL(2, 25, 0), // ""
-QT_MOC_LITERAL(3, 26, 1), // "p"
-QT_MOC_LITERAL(4, 28, 9) // "setQPoint"
+QT_MOC_LITERAL(3, 26, 1), // "x"
+QT_MOC_LITERAL(4, 28, 1), // "y"
+QT_MOC_LITERAL(5, 30, 8) // "setPoint"
 
     },
-    "childWindow\0pointChanged\0\0p\0setQPoint"
+    "childWindow\0pointChanged\0\0x\0y\0setPoint"
 };
 #undef QT_MOC_LITERAL
 
@@ -56,16 +57,16 @@ static const uint qt_meta_data_childWindow[] = {
        1,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    1,   24,    2, 0x06 /* Public */,
+       1,    2,   24,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-       4,    1,   27,    2, 0x0a /* Public */,
+       5,    2,   29,    2, 0x0a /* Public */,
 
  // signals: parameters
-    QMetaType::Void, QMetaType::QPoint,    3,
+    QMetaType::Void, QMetaType::Int, QMetaType::Int,    3,    4,
 
  // slots: parameters
-    QMetaType::Void, QMetaType::QPoint,    3,
+    QMetaType::Void, QMetaType::Int, QMetaType::Int,    3,    4,
 
        0        // eod
 };
@@ -76,14 +77,14 @@ void childWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         childWindow *_t = static_cast<childWindow *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->pointChanged((*reinterpret_cast< QPoint(*)>(_a[1]))); break;
-        case 1: _t->setQPoint((*reinterpret_cast< QPoint(*)>(_a[1]))); break;
+        case 0: _t->pointChanged((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 1: _t->setPoint((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
         int *result = reinterpret_cast<int *>(_a[0]);
         {
-            typedef void (childWindow::*_t)(QPoint );
+            typedef void (childWindow::*_t)(int , int );
             if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&childWindow::pointChanged)) {
                 *result = 0;
                 return;
@@ -129,9 +130,9 @@ int childWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void childWindow::pointChanged(QPoint _t1)
+void childWindow::pointChanged(int _t1, int _t2)
 {
-    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&_t1)), const_cast<void*>(reinterpret_cast<const void*>(&_t2)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
 struct qt_meta_stringdata_MahWindow_t {

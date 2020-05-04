@@ -3,14 +3,16 @@
 
 static QTextStream out(stderr); //Debug
 
+static const uint8_t Pen_size = 5;
+static const QBrush Brush = Qt::darkGreen; 
+
 //Static variables
-bool childWindow::toggle(0);
-QPen childWindow::pen(Qt::darkGreen, 10);
+QPen childWindow::pen(Brush, Pen_size);
 
 childWindow::childWindow(QWidget *parent) 
-	: QWidget(parent, Qt::Window)
+	: QWidget(parent, Qt::Window), PixelMap(Y_leng, std::vector<bool>(X_leng))
 {
-	setFixedSize(700,800);
+	setFixedSize(X_leng,Y_leng);
 }
 
 childWindow::~childWindow()
@@ -18,29 +20,31 @@ childWindow::~childWindow()
 
 void childWindow::paintEvent(QPaintEvent *event)
 {
+	static uint16_t i,j;
+
 	//painter.begin(this) begins painting
-	if(toggle)
+	for(j=0; j<Y_leng; j++)
 	{
-		painter.begin(this);
-		painter.setPen(pen);
-		painter.drawPoint(point);
-		painter.end();
+		for(i=0; i<X_leng; i++)
+			if(PixelMap[j][i])
+			{
+				painter.begin(this);
+				painter.setPen(pen);
+				painter.drawPoint(i,j);
+				painter.end();
+			}
 	}
-	/*
-	painter.end() is necessary! to release resources used in painting.
-	Otherwise we would need to call the deconstructor 
-	Given code in p6 was, shit.
-	It had to make a new QLabel, QPen and QFont for each paint event, and then decosntruct them lol 
-	*/
+	//painter.end() is necessary! to release resources used in painting.
 }
 
-void childWindow::setQPoint(QPoint q)
+void childWindow::setPoint(int x, int y)
 {
-	if(q != point)
+	if( (x<X_leng && y<Y_leng && x>0 && y>0) && (!PixelMap[y][x]) )
 	{
-		point = q;
+		//out << "Coords( " << x << ',' << y << " )\n";
+		PixelMap[y][x] = true;
 		update();
-		emit pointChanged(q);
+		emit pointChanged(x,y);
 	}
 }
 
@@ -48,7 +52,8 @@ void childWindow::setQPoint(QPoint q)
 
 MahWindow::MahWindow(childWindow *parent) : childWindow(parent)
 {	
-	setFixedSize(700,800);
+	setFixedSize(X_leng,Y_leng);
+	painter.setPen(pen);
 }
 
 MahWindow::~MahWindow()
@@ -56,23 +61,26 @@ MahWindow::~MahWindow()
 
 void MahWindow::paintEvent(QPaintEvent *event)
 {
-	if(toggle)
+	static uint16_t i,j;
+	for(j=0; j<Y_leng; j++)
 	{
-		painter.begin(this);
-		painter.setPen(pen);
-		painter.drawPoint(point);
-		painter.end();
+		for(i=0; i<X_leng; i++)
+			if(PixelMap[j][i])
+			{
+				painter.begin(this);
+				painter.setPen(pen);
+				painter.drawPoint(i,j);
+				painter.end();
+			}
 	}
 }
 
 void MahWindow::mouseMoveEvent(QMouseEvent *event)
 {
-	setQPoint( QPoint(event->x(),event->y()) );
+	setPoint( event->x(),event->y() );
 }
 void MahWindow::mousePressEvent(QMouseEvent *event)
 {
-	if(!toggle)
-		toggle = 1;
-	setQPoint( QPoint (event->x(),event->y()) );
+	setPoint( event->x(),event->y() ) ;
 }
 
