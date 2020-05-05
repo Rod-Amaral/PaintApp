@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     window2.setWindowTitle("Child Window");
 
     QObject::connect(&window1,&MainWindow::pointChanged,
-                    &window2,&ChildWindow::setPoint);
+                    &window2,&ChildWindow::PaintPoint);
 
     window2.show();
 	window1.show();

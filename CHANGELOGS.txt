@@ -1,12 +1,15 @@
 by: Rod-Amaral
 
-- replaced the coordinate function for a Qpoint again, for S&S signal in ChildWindow subclass
-- Replaced the 2D array of booleans, with a QImage of the window size
-- Now mouse events set the Image pixels around the event coords,
-- Paint event paints such Image
+- Now instead of setting each pixel individually, to paint on the Image,
+I'm using QPainter to paint on the Image with the selected pen
+- Cleaned up code, Optimized a few things.
 
 
 NOTES:
-QPainter is optmimized for I/O, great!
+QImage is optmimized for I/O, great!
 Because QImage is a QPaintDevice subclass, QPainter can be used to draw directly onto images.
 When using QPainter on a QImage, the painting can be performed in another thread than the current GUI thread.
+
+Maybe instead of painting on every mouse coordinate got form the event,
+paint a line between the current mouse event coordinate, and the last.
+This of cours eisn't ideal, but the current solution stil can't keep up with very fast mouse movements!
