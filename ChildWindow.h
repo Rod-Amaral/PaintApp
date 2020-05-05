@@ -1,8 +1,6 @@
 #ifndef CHILDWINDOW_H
 #define CHILDWINDOW_H
 
-#include <vector>
-
 #include <QBrush>
 #include <QPen>
 #include <QWidget>
@@ -14,7 +12,7 @@
 //Child window class
 class ChildWindow : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     ChildWindow(QWidget *parent = 0);
@@ -24,23 +22,19 @@ public:
 
 	static const uint16_t X_leng = 700;
 	static const uint16_t Y_leng = 800;
-	//static uint16_t X_menu = 100;
-    uint8_t c_colour;
 
 	//Not made static, for signal and slots mechanism
-    QPoint point;
+    QPoint LastPoint;
 
-    //painter used to display Image
-	QPainter painter;
-
-    //ehre the Image is held
+    //Where the Image is held
     QImage Image;
 
 protected:
 	void paintEvent(QPaintEvent *event);
 
 public slots:
-    void setPoint(QPoint point);
+    void PaintPoint(QPoint point);
+    void PaintLine(QPoint point);
 
 signals:
     void pointChanged(QPoint point);
