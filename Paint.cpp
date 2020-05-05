@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     QObject::connect(&window1,&MainWindow::pointChanged,
                     &window2,&ChildWindow::PaintPoint);
 
-    window2.show();
+    //window2.show();
 	window1.show();
 	return app.exec();
 }

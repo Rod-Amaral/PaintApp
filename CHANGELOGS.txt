@@ -1,15 +1,12 @@
 by: Rod-Amaral
 
-- Now instead of setting each pixel individually, to paint on the Image,
-I'm using QPainter to paint on the Image with the selected pen
-- Cleaned up code, Optimized a few things.
+- Now, Painting between current mouse coordinate, and stored LasPoint on mouseMove event
+- Turned on AntiAliasing, on painting to the Image, and To the Window
+- Made it roundpen
+- Fixed bugs
 
 
 NOTES:
 QImage is optmimized for I/O, great!
 Because QImage is a QPaintDevice subclass, QPainter can be used to draw directly onto images.
 When using QPainter on a QImage, the painting can be performed in another thread than the current GUI thread.
-
-Maybe instead of painting on every mouse coordinate got form the event,
-paint a line between the current mouse event coordinate, and the last.
-This of cours eisn't ideal, but the current solution stil can't keep up with very fast mouse movements!
