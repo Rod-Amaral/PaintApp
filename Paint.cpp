@@ -1,9 +1,5 @@
 #include <QApplication>
-#include <QTextStream>
-#include "ChildWindow.h"
 #include "MainWindow.h"
-
-static QTextStream out(stderr); //Debug
 
 int main(int argc, char** argv)
 {
@@ -15,10 +11,19 @@ int main(int argc, char** argv)
     window1.setWindowTitle("Main Window");
     window2.setWindowTitle("Child Window");
 
-    QObject::connect(&window1,&MainWindow::pointChanged,
+    //Point painting
+    QObject::connect(&window1,&MainWindow::doPaintPoint,
                     &window2,&ChildWindow::PaintPoint);
 
-    //window2.show();
+    //Paint Line
+    QObject::connect(&window1,&MainWindow::doPaintLine,
+                    &window2,&ChildWindow::PaintLine);
+
+   //Clear Image
+   QObject::connect(&window1,&MainWindow::doclearImage,
+                    &window2,&ChildWindow::ClearImage);
+
+    window2.show();
 	window1.show();
 	return app.exec();
 }

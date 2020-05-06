@@ -11,13 +11,16 @@ public:
     MainWindow(ChildWindow *parent = 0);
     ~MainWindow();
 
-    bool no_paint;
-
 protected:
     void paintEvent(QPaintEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+
+signals:
+    void doclearImage();
+    void doPaintPoint(QPoint CurrentPoint);
+    void doPaintLine(QPoint CurrentPoint);
 };
 
 #endif // MAINWINDOW_H
