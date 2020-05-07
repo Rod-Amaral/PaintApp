@@ -1,11 +1,10 @@
 by: Rod-Amaral
 
-- Made second window work properly
-- Removed check for mouse coordinates to be inside the window, no longer needed
-- Now both windows can be cleared by pressing the R key
-- Reorganized a bit the functions used for Signals and Slots and Mechanism
-Now the ChildWindow only has slots functions, and MainWindow has the signal functions on top
-- Added some comments
+- Implemented QThread support, for painting to Images on both windows
+- Added space for side menu
+- Prevented from painting to an Image of both windows, at the same time,
+this is probably temporary, may not be needed if both windows are on seperate threads.
+- Now using Slots and Signals to close chils window, instead of QObject parent-child system
 
 NOTES:
 QImage is optmimized for I/O, great!

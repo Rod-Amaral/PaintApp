@@ -16,11 +16,13 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    void closeEvent(QCloseEvent *event);
 
 signals:
-    void doclearImage();
     void doPaintPoint(QPoint CurrentPoint);
     void doPaintLine(QPoint CurrentPoint);
+    void doclearImage();
+    void doCloseWindow();
 };
 
 #endif // MAINWINDOW_H
