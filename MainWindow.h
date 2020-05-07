@@ -18,11 +18,14 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void closeEvent(QCloseEvent *event);
 
+public:
+    void SendPaintPoint(QPoint CurrentPoint);
+    void SendPaintLine(QPoint CurrentPoint);
+    void SendClearImage();
+    void SendCloseWindow();
+
 signals:
-    void doPaintPoint(QPoint CurrentPoint);
-    void doPaintLine(QPoint CurrentPoint);
-    void doclearImage();
-    void doCloseWindow();
+    void SEND_BIT(bool bit);
 };
 
 #endif // MAINWINDOW_H

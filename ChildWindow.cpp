@@ -54,17 +54,113 @@ void ChildWindow::PaintLine(QPoint point)
 
 void ChildWindow::ClearImage()
 {
+    static QMutex mutex;
     //Clears Image, by making it all white and calls window PaintEvent
+    mutex.lock();
     Image.fill(Qt::white);
+    mutex.unlock();
     update();
-}
-
-void ChildWindow::CloseWindow()
-{
-    close();
 }
 
 void ChildWindow::ImagePaint_finished()
 {
     update();
 }
+
+void ChildWindow::IN_BIT(bool bit)
+{
+    static bool OP_or_DATA = false;
+    static uint8_t OP_code = 0;
+    static int16_t data1 = 0, data2 = 0;
+    static uint8_t i = 0;
+
+    if(!OP_or_DATA)
+    {
+        if(i<3)
+        {
+            OP_code += (bit<<i);
+            i++;
+        }
+        else
+        {
+            qDebug() << OP_code;
+            OP_or_DATA = true;
+            i = 0;
+        }
+    }
+
+    if(OP_or_DATA)
+    {
+        //qDebug() << OP_code;
+        switch(OP_code)
+        {
+        case 0:
+            qDebug() << "case: 0";
+            if(i<16)
+            {
+                data1 += (bit<<i);
+                i++;
+            }
+            else if(i<32 && i>15)
+            {
+                data2 += (bit << (i-16));
+                i++;
+                if(i==32)
+                    {PaintPoint(QPoint(data1,data2));
+                    i = 0; OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0;}
+            }
+            break;
+
+        case 1:
+            if(i<16)
+            {
+                data1 += (bit<<i);
+                i++;
+            }
+            else if(i<32 && i>15)
+            {
+                data2 += (bit << (i-16));
+                i++;
+                if(i==32)
+                    {PaintLine(QPoint(data1,data2));
+                    i = 0; OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0;}
+            }
+                break;
+
+        case 2:
+            ClearImage();
+            qDebug() << "Cleared!";
+        {OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0; i = 0;}
+            break;
+
+        case 3:
+            close();
+        {OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0; i = 0;}
+            break;
+
+        case 4:
+        {i = 0; OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0;}
+            break;
+
+        case 5:
+        {i = 0; OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0;}
+            break;
+
+        case 6:
+        {i = 0; OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0;}
+            break;
+
+        case 7:
+        {i = 0; OP_or_DATA = false; OP_code = 0; data1 = 0; data2 = 0;}
+            break;
+
+        }
+    }
+}
+/*
+ OP Codes
+ 0: PaintPoint
+ 1: PaintLine
+ 2: ClearWindow
+ 3: ExitProgram
+*/

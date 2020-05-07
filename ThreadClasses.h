@@ -6,7 +6,7 @@
 #include <QPoint>
 
 
-class ChildWindow; class MainWindow;
+class ChildWindow;
 class PaintImage_Thread : public QThread
 {
 public:
@@ -24,8 +24,22 @@ public:
 private:
     ChildWindow* Window;
     QPoint point;
-    bool Line_Point;
+    bool Line_Point; //Used to select between Line/Point Drawing
 
+};
+
+class childReceive : public QThread
+{
+    explicit childReceive();
+
+    void run() override;
+};
+
+class mainSend : public QThread
+{
+    explicit mainSend();
+
+    void run() override;
 };
 
 #endif // THREADCLASSES_H

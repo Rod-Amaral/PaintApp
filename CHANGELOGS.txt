@@ -1,10 +1,9 @@
 by: Rod-Amaral
 
-- Implemented QThread support, for painting to Images on both windows
-- Added space for side menu
-- Prevented from painting to an Image of both windows, at the same time,
-this is probably temporary, may not be needed if both windows are on seperate threads.
-- Now using Slots and Signals to close chils window, instead of QObject parent-child system
+- Re-worked / added some Slots and Signals functions, for clear communication later on
+- Now sending QPoint positions and paint Point/Line commands with a binary boolean system
+- developed a OP code system, where the first 3 bits sent, represent an operation to be done with the data sent afterwards
+- Some bugs to be fixed, still can't close window / clear Screen with new system
 
 NOTES:
 QImage is optmimized for I/O, great!

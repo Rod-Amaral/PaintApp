@@ -31,20 +31,23 @@ public:
     //Where the Image is held
     QImage Image;
 
-    //Worker thread for Image painting
+    //Worker thread for Image painting,
+    //and toggle variable so program doesn't paint on both Images at the same time
     PaintImage_Thread* ImageThread;
     static bool Image_Paint;
 
+    void PaintPoint(QPoint point);
+    void PaintLine(QPoint point);
+
+    void ClearImage();
+    void ImagePaint_finished();
+
 protected:
-	void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event);
 
 
 public slots:
-    void ClearImage();
-    void PaintPoint(QPoint point);
-    void PaintLine(QPoint point);
-    void CloseWindow();
-    void ImagePaint_finished();
+    void IN_BIT(bool bit);
 
 };
 

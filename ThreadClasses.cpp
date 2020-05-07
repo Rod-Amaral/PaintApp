@@ -11,7 +11,7 @@ void PaintImage_Thread::run()
     static QPainter painter;
     static QMutex mut;
 
-    //Prevent Painting to the two images at the same time, temporary
+    //Prevent Painting to the two images at the same time
     while(!Window->Image_Paint){};
     mut.lock();
     Window->Image_Paint = false;

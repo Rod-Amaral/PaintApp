@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include <QMutex>
+#include <QDebug>
 
 MainWindow::MainWindow(ChildWindow *parent) : ChildWindow(parent)
 {
@@ -39,7 +40,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         CurrentPoint.setX(event->x());
         CurrentPoint.setY(event->y());
         PaintLine(CurrentPoint);
-        emit doPaintLine(CurrentPoint);
+        emit SendPaintLine(CurrentPoint);
     }
 }
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -53,25 +54,73 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         CurrentPoint.setX(event->x());
         CurrentPoint.setY(event->y());
         PaintPoint(CurrentPoint);
-        emit doPaintPoint(CurrentPoint);
+        emit SendPaintPoint(CurrentPoint);
     }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    //If R is pressed, clear Image and emits signal for other window to do the same
+    static QMutex mutex;
+
+    //If R is pressed, clear Image and emit signal for other window to do the same
     if(event->key() == Qt::Key_R)
     {
         while(ImageThread->isRunning()) {}
-            Image.fill(Qt::white);
-            emit doclearImage();
-            update();
+        mutex.lock();
+        Image.fill(Qt::white);
+
+        //Clear Image OP code
+        emit SEND_BIT(0); emit SEND_BIT(1); emit SEND_BIT(0);
+        mutex.unlock();
+        update();
     }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    emit doCloseWindow();
+    static QMutex mutex;
+    mutex.lock();
+
+    //Close Window OP code
+    emit SEND_BIT(1); emit SEND_BIT(1); emit SEND_BIT(0);
+    mutex.unlock();
+    event->accept();
+}
+
+void MainWindow::SendPaintPoint(QPoint CurrentPoint)
+{
+    static int16_t data;
+    static QMutex mutex;
+    mutex.lock();
+
+    //Send Point OP code
+    emit SEND_BIT(0); emit SEND_BIT(0); emit SEND_BIT(0);
+
+    data = CurrentPoint.x();
+    for(uint8_t i = 0; i<16; i++)
+        emit SEND_BIT((bool)1&(data >> i));
+    data = CurrentPoint.y();
+    for(uint8_t i = 0; i<16; i++)
+        emit SEND_BIT((bool)1&(data >> i));
+    mutex.unlock();
+}
+
+void MainWindow::SendPaintLine(QPoint CurrentPoint)
+{
+    static int16_t data;
+    static QMutex mutex;
+    mutex.lock();
+
+    //Send Line OP code
+    emit SEND_BIT(1); emit SEND_BIT(0); emit SEND_BIT(0);
+
+    data = CurrentPoint.x();
+    for(uint8_t i = 0; i<16; i++)
+        emit SEND_BIT((bool)1&(data >> i));
+    data = CurrentPoint.y();
+    for(uint8_t i = 0; i<16; i++)
+        emit SEND_BIT((bool)1&(data >> i));
+    mutex.unlock();
 }
 
 
