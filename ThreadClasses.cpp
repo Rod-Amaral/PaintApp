@@ -13,10 +13,15 @@ void PaintImage_Thread::run()
 
     //Prevent Painting to the two images at the same time
     while(!Window->Image_Paint){};
+
     mut.lock();
     Window->Image_Paint = false;
 
-    //Paints Line between current point and recorded last point, using current pen
+    //Used to fix bug, where paintline is used, before paintpoint
+    if(Window->LastPoint.isNull())
+        Window->LastPoint = point;
+
+    //Paints Line or Point, using current pen
     painter.begin(&(Window->Image));
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Window->pen);
@@ -25,8 +30,9 @@ void PaintImage_Thread::run()
     else
         painter.drawPoint(point);
     painter.end();
-    mut.unlock();
+
     Window->Image_Paint = true;
+    mut.unlock();
 
     //Updates LastPoint
     Window->LastPoint = point;

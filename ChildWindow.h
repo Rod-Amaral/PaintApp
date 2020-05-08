@@ -36,8 +36,8 @@ public:
     PaintImage_Thread* ImageThread;
     static bool Image_Paint;
 
-    void PaintPoint(QPoint point);
-    void PaintLine(QPoint point);
+    void PaintPoint(const QPoint point);
+    void PaintLine(const QPoint point);
 
     void ClearImage();
     void ImagePaint_finished();

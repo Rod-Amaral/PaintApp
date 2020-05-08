@@ -71,6 +71,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         //Clear Image OP code
         emit SEND_BIT(0); emit SEND_BIT(1); emit SEND_BIT(0);
+        emit SEND_BIT(0); //Used to activate OP code command
         mutex.unlock();
         update();
     }
@@ -83,6 +84,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     //Close Window OP code
     emit SEND_BIT(1); emit SEND_BIT(1); emit SEND_BIT(0);
+    emit SEND_BIT(0); //Used to activate OP code command
     mutex.unlock();
     event->accept();
 }
