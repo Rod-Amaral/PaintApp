@@ -6,22 +6,15 @@ int main(int argc, char** argv)
 	QApplication app(argc, argv);
 
     MainWindow window1;
-    ChildWindow window2(&window1);
+    ChildWindow window2;
 
     window1.setWindowTitle("Main Window");
     window2.setWindowTitle("Child Window");
 
-    //Point painting
-    QObject::connect(&window1,&MainWindow::doPaintPoint,
-                    &window2,&ChildWindow::PaintPoint);
-
-    //Paint Line
-    QObject::connect(&window1,&MainWindow::doPaintLine,
-                    &window2,&ChildWindow::PaintLine);
-
-   //Clear Image
-   QObject::connect(&window1,&MainWindow::doclearImage,
-                    &window2,&ChildWindow::ClearImage);
+    //Boolean Communication Protocol - BCP
+    QObject::connect(&window1, &MainWindow::SEND_BIT,
+                     &window2, &ChildWindow::IN_BIT);
+    //Simplex for now
 
     window2.show();
 	window1.show();

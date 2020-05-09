@@ -1,11 +1,9 @@
 by: Rod-Amaral
 
-- Made second window work properly
-- Removed check for mouse coordinates to be inside the window, no longer needed
-- Now both windows can be cleared by pressing the R key
-- Reorganized a bit the functions used for Signals and Slots and Mechanism
-Now the ChildWindow only has slots functions, and MainWindow has the signal functions on top
-- Added some comments
+- Created two thread classes for sending and receiving in the BCP
+- Implemented multithreading for the BCP
+- Cleaned up code, added a few statics and consts there and there
+- Re-did comments
 
 NOTES:
 QImage is optmimized for I/O, great!
