@@ -6,7 +6,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QDebug>
-#include "ThreadClasses.h"
+#include "ChildThreads.h"
 
 //Child window class
 class ChildWindow : public QWidget
@@ -18,11 +18,12 @@ public:
     ~ChildWindow();
 
     //Holds pen details, used in painting
-    static QPen pen;
+    QBrush brush;
+    QPen pen;
 
     //Window size, for now
-	static const uint16_t X_leng = 700;
-	static const uint16_t Y_leng = 800;
+    const uint16_t X_leng = 700;
+    const uint16_t Y_leng = 800;
 
     //Holds last recorded point for drawing a line
     QPoint LastPoint;
@@ -31,10 +32,10 @@ public:
     QImage Image;
 
     //Worker thread for Image painting,
-    //and toggle variable so program doesn't paint on both Images at the same time
-    PaintImage_Thread* ImageThread;
-    static bool Image_Paint;
-    /* This variable wouldn't need to exist with two different PIs, some I'm leaving it static */
+    ChildImage_Thread* ImageThread;
+
+    //Worker thread for receiving data with the BCP
+    childReceive* BCP_ReceiveThread;
 
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
@@ -44,9 +45,6 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
-
-    //Worker thread for receiving data with the BCP
-    childReceive* BCP_ReceiveThread;
 
 public slots:
     void IN_BIT(const bool bit);

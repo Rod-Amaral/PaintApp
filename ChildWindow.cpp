@@ -1,13 +1,11 @@
 #include "ChildWindow.h"
 
-//Static variables
-QPen ChildWindow::pen(Qt::darkGreen, 4, Qt::SolidLine, Qt::RoundCap);
-bool ChildWindow::Image_Paint(true);
 
 ChildWindow::ChildWindow(QWidget* const parent)
-    : QWidget(parent, Qt::Window), Image(X_leng, Y_leng, QImage::Format_RGB32)
+    : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
+      Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
-    ImageThread = new PaintImage_Thread(this);
+    ImageThread = new ChildImage_Thread(this);
     BCP_ReceiveThread = new childReceive(this);
 
     //Once finished wihth writing to Image, update window
@@ -30,28 +28,32 @@ ChildWindow::~ChildWindow()
 void ChildWindow::paintEvent(QPaintEvent *event)
 {
     static QPainter painter;
-    static QMutex mut;
+    static QMutex mutex;
 
     //Paints Image on window
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    mut.lock();
+
+    mutex.lock();
     painter.drawImage(event->rect(), Image, event->rect());
-    mut.unlock();
+    mutex.unlock();
+
     painter.end();
 }
 
 void ChildWindow::PaintPoint(const QPoint & point)
 {
+    while(ImageThread->isRunning()){}
     ImageThread->setPoint(point);
-    ImageThread->setToggle(PaintImage_Thread::POINT);
+    ImageThread->setToggle(ChildImage_Thread::POINT);
     ImageThread->start();
 }
 
 void ChildWindow::PaintLine(const QPoint & point)
 {
+    while(ImageThread->isRunning()){}
     ImageThread->setPoint(point);
-    ImageThread->setToggle(PaintImage_Thread::LINE);
+    ImageThread->setToggle(ChildImage_Thread::LINE);
     ImageThread->start();
 }
 
@@ -60,7 +62,9 @@ void ChildWindow::ClearImage()
     static QMutex mutex;
 
     //Clears Image, by making it all white and calls window PaintEvent
+
     mutex.lock();
+    while(ImageThread->isRunning()){}
     Image.fill(Qt::white);
     mutex.unlock();
     update();

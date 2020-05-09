@@ -21,9 +21,11 @@ QT += core gui widgets
 
 # Input
 SOURCES += Paint.cpp MainWindow.cpp ChildWindow.cpp \
-    ThreadClasses.cpp
+    ChildThreads.cpp \
+    MainThreads.cpp
 HEADERS += MainWindow.h ChildWindow.h \
-    ThreadClasses.h
+    ChildThreads.h \
+    MainThreads.h
 
 DISTFILES += \
     CHANGELOGS.txt

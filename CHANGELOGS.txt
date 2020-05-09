@@ -1,9 +1,7 @@
 by: Rod-Amaral
 
-- Created two thread classes for sending and receiving in the BCP
-- Implemented multithreading for the BCP
-- Cleaned up code, added a few statics and consts there and there
-- Re-did comments
+- Fixed bug where it would crash on reseting the QImage, while SendBCP thread was activated.
+- Seperated Main and Child Window classes code, to simulate like both windows were runnig on 2 Pis
 
 NOTES:
 QImage is optmimized for I/O, great!

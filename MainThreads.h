@@ -1,18 +1,17 @@
-#ifndef THREADCLASSES_H
-#define THREADCLASSES_H
+#ifndef MAINTHREADS_H
+#define MAINTHREADS_H
 
 #include <QThread>
 #include <QMutex>
 #include <QPoint>
 
-
-class ChildWindow; class MainWindow;
+class MainWindow;
 
 //Class used for multithreading in painting to Images
-class PaintImage_Thread : public QThread
+class MainImage_Thread : public QThread
 {
 public:
-    explicit PaintImage_Thread(ChildWindow* const window);
+    explicit MainImage_Thread(MainWindow* const window);
 
     void run() override;
 
@@ -24,27 +23,12 @@ public:
     static const bool POINT = false;
 
 private:
-    ChildWindow* Window;
+    MainWindow* Window;
     QPoint point;
     bool Line_Point; //Used to select between Line/Point Drawing
 
 };
 
-
-//Class used for multihreading in receiving data for the BCP
-class childReceive : public QThread
-{
-public:
-    explicit childReceive(ChildWindow* const window);
-
-    void run() override;
-
-    void setBIT(const bool b);
-
-private:
-    ChildWindow* Window;
-    bool bit;
-};
 
 
 //Class used for multihreading in sending data for the BCP
@@ -66,4 +50,4 @@ private:
     int16_t data2;
 };
 
-#endif // THREADCLASSES_H
+#endif // TMAINTHREADS_H

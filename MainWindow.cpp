@@ -1,14 +1,24 @@
 #include "MainWindow.h"
 
-MainWindow::MainWindow(ChildWindow* const parent) : ChildWindow(parent)
+MainWindow::MainWindow(QWidget* const parent)
+    : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
+      Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
-    setFixedSize(X_leng+100,Y_leng);
+    ImageThread = new MainImage_Thread(this);
     BCP_SendThread = new mainSend(this);
+
+    //Once finished wihth writing to Image, update window
+    QObject::connect(ImageThread, &QThread::finished,
+                     this, &MainWindow::ImagePaint_finished);
+
+    setFixedSize(X_leng+100,Y_leng);
+    Image.fill(Qt::white);
 }
 
 MainWindow::~MainWindow()
 {
     delete BCP_SendThread;
+    delete ImageThread;
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -68,10 +78,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         mutex.lock();
         Image.fill(Qt::white);
-        mutex.unlock();
 
         //Clear Image OP code
+        while(BCP_SendThread->isRunning()){}
         BCP_SendThread->setOP_code(2);
+        mutex.unlock();
         BCP_SendThread->start();
 
         update();
@@ -87,21 +98,67 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
+void MainWindow::PaintPoint(const QPoint & point)
+{
+    while(ImageThread->isRunning()){}
+    ImageThread->setPoint(point);
+    ImageThread->setToggle(MainImage_Thread::POINT);
+    ImageThread->start();
+}
+
+void MainWindow::PaintLine(const QPoint & point)
+{
+    while(ImageThread->isRunning()){}
+    ImageThread->setPoint(point);
+    ImageThread->setToggle(MainImage_Thread::LINE);
+    ImageThread->start();
+}
+
+void MainWindow::ClearImage()
+{
+    static QMutex mutex;
+
+    //Clears Image, by making it all white and calls window PaintEvent
+
+    mutex.lock();
+    while(ImageThread->isRunning()){}
+    Image.fill(Qt::white);
+    mutex.unlock();
+    update();
+}
+
+//I couldn't slot update directly -_-
+void MainWindow::ImagePaint_finished()
+{
+    update();
+}
+
+
 void MainWindow::SendPaintPoint(const QPoint & CurrentPoint)
 {
+    static QMutex mutex;
+    while(BCP_SendThread->isRunning()){}
+
     //Send Point OP code
+    mutex.lock();
     BCP_SendThread->setOP_code(0);
     BCP_SendThread->setData1(CurrentPoint.x());
     BCP_SendThread->setData2(CurrentPoint.y());
+    mutex.unlock();
     BCP_SendThread->start();
 }
 
 void MainWindow::SendPaintLine(const QPoint & CurrentPoint)
 {
+    static QMutex mutex;
+    while(BCP_SendThread->isRunning()){}
+
     //Send Line OP code
+    mutex.lock();
     BCP_SendThread->setOP_code(1);
     BCP_SendThread->setData1(CurrentPoint.x());
     BCP_SendThread->setData2(CurrentPoint.y());
+    mutex.unlock();
     BCP_SendThread->start();
 }
 
