@@ -8,24 +8,27 @@ class MainWindow : public ChildWindow
     Q_OBJECT
 
 public:
-    MainWindow(ChildWindow *parent = 0);
+    MainWindow(ChildWindow* const parent = 0);
     ~MainWindow();
 
+    //Worker thread for sending data with the BCP
+    mainSend* BCP_SendThread;
+
 protected:
-    void paintEvent(QPaintEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
-    void closeEvent(QCloseEvent *event);
+    void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 public:
-    void SendPaintPoint(QPoint CurrentPoint);
-    void SendPaintLine(QPoint CurrentPoint);
+    void SendPaintPoint(const QPoint & CurrentPoint);
+    void SendPaintLine(const QPoint & CurrentPoint);
     void SendClearImage();
     void SendCloseWindow();
 
 signals:
-    void SEND_BIT(bool bit);
+    void SEND_BIT(const bool bit);
 };
 
 #endif // MAINWINDOW_H

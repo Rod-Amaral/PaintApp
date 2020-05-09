@@ -1,14 +1,15 @@
 #include "MainWindow.h"
-#include <QMutex>
-#include <QDebug>
 
-MainWindow::MainWindow(ChildWindow *parent) : ChildWindow(parent)
+MainWindow::MainWindow(ChildWindow* const parent) : ChildWindow(parent)
 {
     setFixedSize(X_leng+100,Y_leng);
+    BCP_SendThread = new mainSend(this);
 }
 
 MainWindow::~MainWindow()
-{}
+{
+    delete BCP_SendThread;
+}
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
@@ -40,7 +41,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         CurrentPoint.setX(event->x());
         CurrentPoint.setY(event->y());
         PaintLine(CurrentPoint);
-        emit SendPaintLine(CurrentPoint);
+        SendPaintLine(CurrentPoint);
     }
 }
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -54,7 +55,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         CurrentPoint.setX(event->x());
         CurrentPoint.setY(event->y());
         PaintPoint(CurrentPoint);
-        emit SendPaintPoint(CurrentPoint);
+        SendPaintPoint(CurrentPoint);
     }
 }
 
@@ -65,64 +66,43 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     //If R is pressed, clear Image and emit signal for other window to do the same
     if(event->key() == Qt::Key_R)
     {
-        while(ImageThread->isRunning()) {}
         mutex.lock();
         Image.fill(Qt::white);
+        mutex.unlock();
 
         //Clear Image OP code
-        emit SEND_BIT(0); emit SEND_BIT(1); emit SEND_BIT(0);
-        emit SEND_BIT(0); //Used to activate OP code command
-        mutex.unlock();
+        BCP_SendThread->setOP_code(2);
+        BCP_SendThread->start();
+
         update();
     }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    static QMutex mutex;
-    mutex.lock();
-
     //Close Window OP code
-    emit SEND_BIT(1); emit SEND_BIT(1); emit SEND_BIT(0);
-    emit SEND_BIT(0); //Used to activate OP code command
-    mutex.unlock();
+    BCP_SendThread->setOP_code(3);
+    BCP_SendThread->start();
+
     event->accept();
 }
 
-void MainWindow::SendPaintPoint(QPoint CurrentPoint)
+void MainWindow::SendPaintPoint(const QPoint & CurrentPoint)
 {
-    static int16_t data;
-    static QMutex mutex;
-    mutex.lock();
-
     //Send Point OP code
-    emit SEND_BIT(0); emit SEND_BIT(0); emit SEND_BIT(0);
-
-    data = CurrentPoint.x();
-    for(uint8_t i = 0; i<16; i++)
-        emit SEND_BIT((bool)1&(data >> i));
-    data = CurrentPoint.y();
-    for(uint8_t i = 0; i<16; i++)
-        emit SEND_BIT((bool)1&(data >> i));
-    mutex.unlock();
+    BCP_SendThread->setOP_code(0);
+    BCP_SendThread->setData1(CurrentPoint.x());
+    BCP_SendThread->setData2(CurrentPoint.y());
+    BCP_SendThread->start();
 }
 
-void MainWindow::SendPaintLine(QPoint CurrentPoint)
+void MainWindow::SendPaintLine(const QPoint & CurrentPoint)
 {
-    static int16_t data;
-    static QMutex mutex;
-    mutex.lock();
-
     //Send Line OP code
-    emit SEND_BIT(1); emit SEND_BIT(0); emit SEND_BIT(0);
-
-    data = CurrentPoint.x();
-    for(uint8_t i = 0; i<16; i++)
-        emit SEND_BIT((bool)1&(data >> i));
-    data = CurrentPoint.y();
-    for(uint8_t i = 0; i<16; i++)
-        emit SEND_BIT((bool)1&(data >> i));
-    mutex.unlock();
+    BCP_SendThread->setOP_code(1);
+    BCP_SendThread->setData1(CurrentPoint.x());
+    BCP_SendThread->setData2(CurrentPoint.y());
+    BCP_SendThread->start();
 }
 
 

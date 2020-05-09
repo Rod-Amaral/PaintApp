@@ -4,10 +4,11 @@
 QPen ChildWindow::pen(Qt::darkGreen, 4, Qt::SolidLine, Qt::RoundCap);
 bool ChildWindow::Image_Paint(true);
 
-ChildWindow::ChildWindow(QWidget *parent)
+ChildWindow::ChildWindow(QWidget* const parent)
     : QWidget(parent, Qt::Window), Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
     ImageThread = new PaintImage_Thread(this);
+    BCP_ReceiveThread = new childReceive(this);
 
     //Once finished wihth writing to Image, update window
     QObject::connect(ImageThread, &QThread::finished,
@@ -20,7 +21,9 @@ ChildWindow::ChildWindow(QWidget *parent)
 ChildWindow::~ChildWindow()
 {
     ImageThread->deleteLater();
+    BCP_ReceiveThread->deleteLater();
     delete ImageThread;
+    delete BCP_ReceiveThread;
 }
 
 
@@ -38,14 +41,14 @@ void ChildWindow::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-void ChildWindow::PaintPoint(const QPoint point)
+void ChildWindow::PaintPoint(const QPoint & point)
 {
     ImageThread->setPoint(point);
     ImageThread->setToggle(PaintImage_Thread::POINT);
     ImageThread->start();
 }
 
-void ChildWindow::PaintLine(const QPoint point)
+void ChildWindow::PaintLine(const QPoint & point)
 {
     ImageThread->setPoint(point);
     ImageThread->setToggle(PaintImage_Thread::LINE);
@@ -63,101 +66,15 @@ void ChildWindow::ClearImage()
     update();
 }
 
+//I couldn't slot update directly -_-
 void ChildWindow::ImagePaint_finished()
 {
     update();
 }
 
-void ChildWindow::IN_BIT(bool bit)
+void ChildWindow::IN_BIT(const bool bit)
 {
-    static bool OP_or_DATA = true;
-    static uint8_t OP_code = 0;
-    static int16_t data1 = 0, data2 = 0;
-    static uint8_t i = 0;
-
-    if(OP_or_DATA)
-    {
-        if(i<3)
-        {
-            OP_code += (bit<<i);
-            i++;
-        }
-        else
-        {
-            OP_or_DATA = false;
-            i = 0;
-        }
-    }
-
-    if(!OP_or_DATA)
-    {
-        //Here we collect data/execute commands after getting the OP code
-        switch(OP_code)
-        {
-        case 0:
-            if(i<16)
-            {
-                data1 += (bit<<i);
-                i++;
-            }
-            else if(i<32 && i>15)
-            {
-                data2 += (bit << (i-16));
-                i++;
-                if(i==32)
-                    {PaintPoint(QPoint(data1,data2));
-                    i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;}
-            }
-            break;
-
-        case 1:
-            if(i<16)
-            {
-                data1 += (bit<<i);
-                i++;
-            }
-            else if(i<32 && i>15)
-            {
-                data2 += (bit << (i-16));
-                i++;
-                if(i==32)
-                    {PaintLine(QPoint(data1,data2));
-                    i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;}
-            }
-                break;
-
-        case 2:
-            ClearImage();
-        {OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0; i = 0;}
-            break;
-
-        case 3:
-            close();
-            break;
-
-        case 4:
-        {i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;}
-            break;
-
-        case 5:
-        {i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;}
-            break;
-
-        case 6:
-        {i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;}
-            break;
-
-        case 7:
-        {i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;}
-            break;
-
-        }
-    }
+    while(BCP_ReceiveThread->isRunning()){}
+    BCP_ReceiveThread->setBIT(bit);
+    BCP_ReceiveThread->start();
 }
-/*
- OP Codes
- 0: PaintPoint
- 1: PaintLine
- 2: ClearWindow
- 3: ExitProgram
-*/

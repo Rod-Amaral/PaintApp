@@ -1,7 +1,9 @@
 by: Rod-Amaral
 
-- Fixed Boolean Communication Protocol bugs, working perfectly now
-- Fixed bug where it would paintline, before giving a value to LastPoint
+- Created two thread classes for sending and receiving in the BCP
+- Implemented multithreading for the BCP
+- Cleaned up code, added a few statics and consts there and there
+- Re-did comments
 
 NOTES:
 QImage is optmimized for I/O, great!

@@ -12,8 +12,8 @@ int main(int argc, char** argv)
     window2.setWindowTitle("Child Window");
 
     //Boolean Communication Protocol - BCP
-    QObject::connect(&window1,&MainWindow::SEND_BIT,
-                     &window2,&ChildWindow::IN_BIT);
+    QObject::connect(&window1, &MainWindow::SEND_BIT,
+                     &window2, &ChildWindow::IN_BIT);
     //Simplex for now
 
     window2.show();
