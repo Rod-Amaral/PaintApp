@@ -39,6 +39,7 @@ public:
 
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
+    void setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs);
 
     void ClearImage();
     void ImagePaint_finished();

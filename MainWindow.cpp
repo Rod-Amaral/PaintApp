@@ -17,6 +17,8 @@ MainWindow::MainWindow(QWidget* const parent)
 
 MainWindow::~MainWindow()
 {
+    ImageThread->deleteLater();
+    BCP_SendThread->deleteLater();
     delete BCP_SendThread;
     delete ImageThread;
 }
@@ -72,6 +74,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     static QMutex mutex;
+    static uint32_t color;
+    static bool t = 0;
 
     //If R is pressed, clear Image and emit signal for other window to do the same
     if(event->key() == Qt::Key_R)
@@ -80,21 +84,72 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         Image.fill(Qt::white);
 
         //Clear Image OP code
-        while(BCP_SendThread->isRunning()){}
         BCP_SendThread->setOP_code(2);
         mutex.unlock();
         BCP_SendThread->start();
 
         update();
     }
+    else if(event->key() == Qt::Key_C)
+    {
+        if(t)
+            color = 0xdd7788ff;
+        else
+            color = 0x0;
+        t = !t;
+
+        mutex.lock();
+        brush.setColor(color);
+        pen.setBrush(brush);
+        mutex.unlock();
+
+        while(BCP_SendThread->isRunning()){}
+        BCP_SendThread->setOP_code(5);
+        BCP_SendThread->setData1(color & 65535);
+        BCP_SendThread->setData2((color>>16) & 65535);
+        BCP_SendThread->start();
+    }
+    else if(event->key() == Qt::Key_V)
+    {
+        if(t)
+        {
+            setPen(Qt::Dense4Pattern, Qt::SolidLine, 8, Qt::RoundCap, Qt::SvgMiterJoin);
+        }
+        else
+        {
+            setPen(Qt::SolidPattern, Qt::DashLine, 20, Qt::SquareCap, Qt::RoundJoin);
+        }
+        t = !t;
+
+    }
+}
+
+void MainWindow::setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs)
+{
+    static QMutex mutex;
+
+    mutex.lock();
+    brush.setStyle(bs);
+    pen.setBrush(brush);
+    pen.setStyle(ps);
+    pen.setWidth(penWidth);
+    pen.setCapStyle(pcs);
+    pen.setJoinStyle(pjs);
+    mutex.unlock();
+
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(4);
+    BCP_SendThread->setData1( ((unsigned int)bs) + ((unsigned int)(ps<<5)) + ((unsigned int)(penWidth<<8)) );
+    BCP_SendThread->setData2( ((unsigned int)(pcs/0x10)) + ((unsigned int)( (pjs<0x100) ? (pjs/0x40) : 0b11 )<<2) );
+    BCP_SendThread->start();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     //Close Window OP code
+    while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(3);
     BCP_SendThread->start();
-
     event->accept();
 }
 
@@ -119,9 +174,7 @@ void MainWindow::ClearImage()
     static QMutex mutex;
 
     //Clears Image, by making it all white and calls window PaintEvent
-
     mutex.lock();
-    while(ImageThread->isRunning()){}
     Image.fill(Qt::white);
     mutex.unlock();
     update();
@@ -136,29 +189,21 @@ void MainWindow::ImagePaint_finished()
 
 void MainWindow::SendPaintPoint(const QPoint & CurrentPoint)
 {
-    static QMutex mutex;
-    while(BCP_SendThread->isRunning()){}
-
     //Send Point OP code
-    mutex.lock();
+    while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(0);
     BCP_SendThread->setData1(CurrentPoint.x());
     BCP_SendThread->setData2(CurrentPoint.y());
-    mutex.unlock();
     BCP_SendThread->start();
 }
 
 void MainWindow::SendPaintLine(const QPoint & CurrentPoint)
 {
-    static QMutex mutex;
-    while(BCP_SendThread->isRunning()){}
-
     //Send Line OP code
-    mutex.lock();
+    while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(1);
     BCP_SendThread->setData1(CurrentPoint.x());
     BCP_SendThread->setData2(CurrentPoint.y());
-    mutex.unlock();
     BCP_SendThread->start();
 }
 

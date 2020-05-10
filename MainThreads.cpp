@@ -45,7 +45,7 @@ void MainImage_Thread::setToggle(const bool t)
 
 
 mainSend::mainSend(MainWindow* const window)
-    : Window(window), OP_code(0), data1(0), data2(0)
+    : Window(window), SendMessage(0), OP_code(0), data1(0), data2(0)
 {}
 
 
@@ -59,7 +59,7 @@ void mainSend::run()
     emit Window->SEND_BIT((bool)(OP_code & 2));
     emit Window->SEND_BIT((bool)(OP_code & 4));
 
-    if(OP_code>1)
+    if(OP_code>1 && OP_code <4)
         emit Window->SEND_BIT(0);
     else
     {
@@ -92,5 +92,7 @@ void mainSend::setData2(const int16_t data)
  1: PaintLine
  2: ClearWindow
  3: ExitProgram
+ 4: Change Pen/Brush
+ 5: Change Color
 */
 

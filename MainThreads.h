@@ -45,6 +45,7 @@ public:
 
 private:
     MainWindow* Window;
+    bool SendMessage;
     uint8_t OP_code;
     int16_t data1;
     int16_t data2;

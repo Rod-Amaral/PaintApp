@@ -82,15 +82,14 @@ void childReceive::run()
                 data1 += (bit<<i);
                 i++;
             }
-            else if(i<32 && i>15)
+            else
             {
                 data2 += (bit << (i-16));
                 i++;
+
                 if(i==32)
                 {
-                    mutex.lock();
                     Window->PaintPoint(QPoint(data1,data2));
-                    mutex.unlock();
                     i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
                 }
             }
@@ -102,15 +101,14 @@ void childReceive::run()
                 data1 += (bit<<i);
                 i++;
             }
-            else if(i<32 && i>15)
+            else
             {
                 data2 += (bit << (i-16));
                 i++;
+
                 if(i==32)
                 {
-                    mutex.lock();
                     Window->PaintLine(QPoint(data1,data2));
-                    mutex.unlock();
                     i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
                 }
             }
@@ -122,9 +120,7 @@ void childReceive::run()
             break;
 
         case 3:
-            mutex.lock();
             Window->close();
-            mutex.unlock();
             break;
 
         case 4:
@@ -133,20 +129,53 @@ void childReceive::run()
                 data1 += (bit<<i);
                 i++;
             }
-            else if(i<32 && i>15)
+            else
             {
                 data2 += (bit << (i-16));
                 i++;
+
                 if(i==32)
                 {
-                    //CHANGE PEN
+                    mutex.lock();
+                    Window->brush.setStyle(Qt::BrushStyle(data1 & 0b11111));
+                    Window->pen.setBrush(Window->brush);
+                    Window->pen.setStyle(Qt::PenStyle( ((data1>>5) & 0b111) ));
+                    Window->pen.setWidth(data1>>8);
+                    Window->pen.setCapStyle(Qt::PenCapStyle( (data2 & 0b11)*0x10 ));
+                    //This following one is good ;)   check Qt:PenJoinStyle enum values
+                    Window->pen.setJoinStyle(Qt::PenJoinStyle( ((data2 & 0b1100)!=0b1100) ? ((data2 & 0b1100)*0x10) : (0x100) ));
+                    mutex.unlock();
                     i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
                 }
+                /*
+                    data1 bits->
+                    [1:5] BrushStyle, [6:8] PenStyle, [9:16] pen Width
+                    data2 bits->
+                    [1:2] PenCapStyle, [3:4] PenjoinStyle
+                */
             }
             break;
 
         case 5:
-            i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
+            if(i<16)
+            {
+                data1 += (bit<<i);
+                i++;
+            }
+            else
+            {
+                data2 += (bit<<(i-16));
+                i++;
+
+                if(i==32)
+                {
+                    mutex.lock();
+                    Window->brush.setColor(((uint16_t)data1 + ((uint16_t)data2 << 16)));
+                    Window->pen.setBrush(Window->brush);
+                    mutex.unlock();
+                    i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
+                }
+            }
             break;
 
         case 6:

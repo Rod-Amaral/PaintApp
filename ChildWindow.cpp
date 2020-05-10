@@ -1,6 +1,5 @@
 #include "ChildWindow.h"
 
-
 ChildWindow::ChildWindow(QWidget* const parent)
     : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
       Image(X_leng, Y_leng, QImage::Format_RGB32)
@@ -62,9 +61,7 @@ void ChildWindow::ClearImage()
     static QMutex mutex;
 
     //Clears Image, by making it all white and calls window PaintEvent
-
     mutex.lock();
-    while(ImageThread->isRunning()){}
     Image.fill(Qt::white);
     mutex.unlock();
     update();

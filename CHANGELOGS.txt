@@ -1,7 +1,7 @@
 by: Rod-Amaral
 
-- Fixed bug where it would crash on reseting the QImage, while SendBCP thread was activated.
-- Seperated Main and Child Window classes code, to simulate like both windows were runnig on 2 Pis
+- Cleaned up code
+- Made Pen/Brush and Color capable of being be set using the BCP
 
 NOTES:
 QImage is optmimized for I/O, great!
