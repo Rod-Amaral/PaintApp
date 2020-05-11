@@ -2,16 +2,12 @@
 
 MainWindow::MainWindow(QWidget* const parent)
     : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
-      Image(X_leng, Y_leng, QImage::Format_RGB32)
+       Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
+    resize(X_leng,Y_leng);
     ImageThread = new MainImage_Thread(this);
     BCP_SendThread = new mainSend(this);
 
-    //Once finished wihth writing to Image, update window
-    QObject::connect(ImageThread, &QThread::finished,
-                     this, &MainWindow::ImagePaint_finished);
-
-    setFixedSize(X_leng+100,Y_leng);
     Image.fill(Qt::white);
 }
 
@@ -32,12 +28,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
     mut.lock();
-    painter.drawImage(event->rect(), Image, event->rect());
+    painter.drawImage(Image.rect(), Image, Image.rect());
     mut.unlock();
-
-    //Side bar
-    painter.setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::SquareCap));
-    painter.drawLine(X_leng+2,0,X_leng+2,Y_leng);
 
     painter.end();
 }
@@ -47,27 +39,49 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     static QPainter painter;
     static QPoint CurrentPoint;
 
-    //Paints line on window and emits the same command for the other window
-    if(ImageThread->isFinished())
+    if(event->x()<=width() && event->y()<=height())
     {
-        CurrentPoint.setX(event->x());
-        CurrentPoint.setY(event->y());
-        PaintLine(CurrentPoint);
-        SendPaintLine(CurrentPoint);
+        //Paints line on window and emits the same command for the other window
+        if(ImageThread->isFinished() && wasLeftButton)
+        {
+            CurrentPoint.setX(event->x());
+            CurrentPoint.setY(event->y());
+            PaintLine(CurrentPoint);
+            SendPaintLine(CurrentPoint);
+        }
     }
+    else
+        LastPoint = QPoint(event->x(),event->y());
 }
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     static QPainter painter;
     static QPoint CurrentPoint;
 
-    //Paints point on window and emits the same command for the other window
-    if(ImageThread->isFinished() | LastPoint.isNull())
+    if((event->button()==Qt::LeftButton))
     {
-        CurrentPoint.setX(event->x());
-        CurrentPoint.setY(event->y());
-        PaintPoint(CurrentPoint);
-        SendPaintPoint(CurrentPoint);
+        //Paints point on window and emits the same command for the other window
+        if((ImageThread->isFinished() || LastPoint.isNull()))
+        {
+            wasLeftButton = true;
+            CurrentPoint.setX(event->x());
+            CurrentPoint.setY(event->y());
+            PaintPoint(CurrentPoint);
+            SendPaintPoint(CurrentPoint);
+        }
+        emit closeSettingsWindow();
+    }
+    else if((event->button()==Qt::RightButton))
+    {
+        emit toggleSettingsWindow(event->globalX(), event->globalY());
+    }
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    if((event->button()==Qt::LeftButton))
+    {
+        wasLeftButton = false;
     }
 }
 
@@ -75,7 +89,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     static QMutex mutex;
     static uint32_t color;
-    static bool t = 0;
 
     //If R is pressed, clear Image and emit signal for other window to do the same
     if(event->key() == Qt::Key_R)
@@ -92,6 +105,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     else if(event->key() == Qt::Key_C)
     {
+        static bool t = 0;
         if(t)
             color = 0xdd7788ff;
         else
@@ -111,17 +125,50 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     else if(event->key() == Qt::Key_V)
     {
+        static bool t = 0;
         if(t)
-        {
             setPen(Qt::Dense4Pattern, Qt::SolidLine, 8, Qt::RoundCap, Qt::SvgMiterJoin);
-        }
         else
-        {
             setPen(Qt::SolidPattern, Qt::DashLine, 20, Qt::SquareCap, Qt::RoundJoin);
-        }
         t = !t;
-
     }
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    static QMutex mutex;
+    int16_t oldX = event->oldSize().width();
+    int16_t oldY = event->oldSize().height();
+
+    mutex.lock();
+    if( (Image.width()<width()) || (Image.height()<height()) )
+    {
+        Image = Image.copy(0,0,width(),height());
+
+        static QPainter painter;
+        painter.begin(&Image);
+        painter.fillRect(0,oldY,width(),(height()-oldY),Qt::white);
+        painter.fillRect(oldX,0,(width()-oldX),oldY,Qt::white);
+        painter.end();
+    }
+    mutex.unlock();
+
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(6);
+    BCP_SendThread->setData1(width());
+    BCP_SendThread->setData2(height());
+    BCP_SendThread->start();
+}
+
+void MainWindow::set()
+{
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(6);
+    BCP_SendThread->setData1(X_leng);
+    BCP_SendThread->setData2(Y_leng);
+    BCP_SendThread->start();
+
+    update();
 }
 
 void MainWindow::setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs)
@@ -179,13 +226,6 @@ void MainWindow::ClearImage()
     mutex.unlock();
     update();
 }
-
-//I couldn't slot update directly -_-
-void MainWindow::ImagePaint_finished()
-{
-    update();
-}
-
 
 void MainWindow::SendPaintPoint(const QPoint & CurrentPoint)
 {

@@ -1,7 +1,9 @@
 by: Rod-Amaral
 
-- Cleaned up code
-- Made Pen/Brush and Color capable of being be set using the BCP
+- Can only paint using Left mouse button now
+- Now Displaying a settings menu when right cliking on MainWindow
+- Now capable of Resizing the windows correctly, with resize event
+- some bugs fixed
 
 NOTES:
 QImage is optmimized for I/O, great!

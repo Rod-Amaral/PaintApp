@@ -29,6 +29,7 @@ void MainImage_Thread::run()
     Window->LastPoint = point;
 
     mutex.unlock();
+    Window->update();
 }
 
 void MainImage_Thread::setPoint(const QPoint & p)
@@ -43,9 +44,8 @@ void MainImage_Thread::setToggle(const bool t)
 
 
 
-
 mainSend::mainSend(MainWindow* const window)
-    : Window(window), SendMessage(0), OP_code(0), data1(0), data2(0)
+    : Window(window), OP_code(0), data1(0), data2(0)
 {}
 
 

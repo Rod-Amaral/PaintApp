@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QDebug>
 #include "MainThreads.h"
+#include "SettingsMenu.h"
 
 //Main Window class
 class MainWindow : public QWidget
@@ -17,11 +18,14 @@ public:
     MainWindow(QWidget* const parent = 0);
     ~MainWindow();
 
+    //Used to know if the left button was pressed
+    bool wasLeftButton;
+
     //Holds pen details, used in painting
     QBrush brush;
     QPen pen;
 
-    //Window size, for now
+    //Default Window size
     const uint16_t X_leng = 700;
     const uint16_t Y_leng = 800;
 
@@ -40,15 +44,17 @@ public:
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
     void setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs);
+    void set();
 
     void ClearImage();
-    void ImagePaint_finished();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 
 public:
@@ -59,6 +65,8 @@ public:
 
 signals:
     void SEND_BIT(const bool bit);
+    void toggleSettingsWindow(const int x, const int y);
+    void closeSettingsWindow();
 };
 
 #endif // MAINWINDOW_H

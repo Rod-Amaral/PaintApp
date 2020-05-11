@@ -2,16 +2,11 @@
 
 ChildWindow::ChildWindow(QWidget* const parent)
     : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
-      Image(X_leng, Y_leng, QImage::Format_RGB32)
+      oldX(width()), oldY(height()), Image(400, 400, QImage::Format_RGB32)
 {
     ImageThread = new ChildImage_Thread(this);
     BCP_ReceiveThread = new childReceive(this);
 
-    //Once finished wihth writing to Image, update window
-    QObject::connect(ImageThread, &QThread::finished,
-                     this, &ChildWindow::ImagePaint_finished);
-
-    setFixedSize(X_leng,Y_leng);
     Image.fill(Qt::white);
 }
 
@@ -34,7 +29,7 @@ void ChildWindow::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
 
     mutex.lock();
-    painter.drawImage(event->rect(), Image, event->rect());
+    painter.drawImage(Image.rect(), Image, Image.rect());
     mutex.unlock();
 
     painter.end();
@@ -64,12 +59,6 @@ void ChildWindow::ClearImage()
     mutex.lock();
     Image.fill(Qt::white);
     mutex.unlock();
-    update();
-}
-
-//I couldn't slot update directly -_-
-void ChildWindow::ImagePaint_finished()
-{
     update();
 }
 

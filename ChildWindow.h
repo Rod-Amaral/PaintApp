@@ -21,9 +21,9 @@ public:
     QBrush brush;
     QPen pen;
 
-    //Window size, for now
-    const uint16_t X_leng = 700;
-    const uint16_t Y_leng = 800;
+    //Holds previous width and height for Window
+    int16_t oldX;
+    int16_t oldY;
 
     //Holds last recorded point for drawing a line
     QPoint LastPoint;
@@ -41,7 +41,6 @@ public:
     void PaintLine(const QPoint & point);
 
     void ClearImage();
-    void ImagePaint_finished();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
