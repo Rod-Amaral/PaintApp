@@ -7,7 +7,6 @@
 #include <QPainter>
 #include <QDebug>
 #include "MainThreads.h"
-#include "SettingsMenu.h"
 
 //Main Window class
 class MainWindow : public QWidget
@@ -62,6 +61,9 @@ public:
     void SendPaintLine(const QPoint & CurrentPoint);
     void SendClearImage();
     void SendCloseWindow();
+
+public slots:
+    void setColour(uint32_t color);
 
 signals:
     void SEND_BIT(const bool bit);

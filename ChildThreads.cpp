@@ -91,7 +91,6 @@ void childReceive::run()
                 if(i==32)
                 {
                     Window->PaintPoint(QPoint(data1,data2));
-                    Window->oldX = Window->width(); Window->oldY = Window->height();
                     i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
                 }
             }
@@ -193,26 +192,7 @@ void childReceive::run()
 
                 if(i==32)
                 {
-                    mutex.lock();
                     Window->resize(data1, data2);
-                    if( (Window->Image.width()<Window->width()) || (Window->Image.height()<Window->height()) )
-                    {
-                        Window->Image = Window->Image.copy(0,0,Window->width(),Window->height());
-
-                        static QPainter painter;
-                        painter.begin(&Window->Image);
-                        painter.fillRect(0,Window->oldY,Window->width(),(Window->height()-Window->oldY),Qt::white);
-                        painter.fillRect(Window->oldX,0,(Window->width()-Window->oldX),Window->oldY,Qt::white);
-                        painter.end();
-                    }
-                    static bool once = true;
-                    if(once)
-                    {
-                        Window->Image.fill(Qt::white);
-                        once = false;
-                    }
-                    mutex.unlock();
-                    Window->update();
                     i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
                 }
             }

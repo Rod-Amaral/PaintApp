@@ -21,10 +21,6 @@ public:
     QBrush brush;
     QPen pen;
 
-    //Holds previous width and height for Window
-    int16_t oldX;
-    int16_t oldY;
-
     //Holds last recorded point for drawing a line
     QPoint LastPoint;
 
@@ -39,6 +35,7 @@ public:
 
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
+    void resizeEvent(QResizeEvent *event) override;
 
     void ClearImage();
 

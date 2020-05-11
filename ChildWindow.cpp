@@ -2,12 +2,10 @@
 
 ChildWindow::ChildWindow(QWidget* const parent)
     : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
-      oldX(width()), oldY(height()), Image(400, 400, QImage::Format_RGB32)
+      Image(1, 1, QImage::Format_RGB32)
 {
     ImageThread = new ChildImage_Thread(this);
     BCP_ReceiveThread = new childReceive(this);
-
-    Image.fill(Qt::white);
 }
 
 ChildWindow::~ChildWindow()
@@ -18,21 +16,44 @@ ChildWindow::~ChildWindow()
     delete BCP_ReceiveThread;
 }
 
-
 void ChildWindow::paintEvent(QPaintEvent *event)
 {
     static QPainter painter;
     static QMutex mutex;
 
     //Paints Image on window
+    mutex.lock();
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
+    painter.drawImage(event->rect(), Image, event->rect());
+    painter.end();
+    mutex.unlock();    
+}
+
+void ChildWindow::resizeEvent(QResizeEvent *event)
+{
+    static QMutex mutex;
+    int16_t oldX = event->oldSize().width();
+    int16_t oldY = event->oldSize().height();
 
     mutex.lock();
-    painter.drawImage(Image.rect(), Image, Image.rect());
-    mutex.unlock();
+    if( (Image.width()<width()) || (Image.height()<height()) )
+    {
+        Image = Image.copy(0,0,width(),height());
 
-    painter.end();
+        static QPainter painter;
+        painter.begin(&Image);
+        painter.fillRect(0,oldY,width(),(height()-oldY),Qt::white);
+        painter.fillRect(oldX,0,(width()-oldX),oldY,Qt::white);
+        painter.end();
+    }
+    static bool once = true;
+    if(once)
+    {
+        Image.fill(Qt::white);
+        once = false;
+    }
+    mutex.unlock();
 }
 
 void ChildWindow::PaintPoint(const QPoint & point)

@@ -1,9 +1,7 @@
 by: Rod-Amaral
 
-- Can only paint using Left mouse button now
-- Now Displaying a settings menu when right cliking on MainWindow
-- Now capable of Resizing the windows correctly, with resize event
-- some bugs fixed
+- Fixed bug where resizing led to crashing
+- Made push buttons for settings menu that change colour
 
 NOTES:
 QImage is optmimized for I/O, great!

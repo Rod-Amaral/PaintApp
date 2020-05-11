@@ -1,6 +1,6 @@
 #include <QApplication>
-#include "MainWindow.h"
 #include "ChildWindow.h"
+#include "SettingsMenu.h"
 
 int main(int argc, char** argv)
 {
@@ -20,6 +20,9 @@ int main(int argc, char** argv)
     QObject::connect(&window1, &MainWindow::SEND_BIT,
                      &window2, &ChildWindow::IN_BIT);
     //Simplex for now
+
+    QObject::connect( &Settings, &SettingsMenu::sendColour,
+                      &window1, &MainWindow::setColour );
 
     window1.setWindowTitle("Main Window");
     window2.setWindowTitle("Child Window");
