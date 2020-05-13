@@ -11,19 +11,6 @@ int main(int argc, char** argv)
     SettingsMenu Settings(&window1);
     Settings.set();
 
-    //Shows settings menu
-    QObject::connect(&window1, &MainWindow::toggleSettingsWindow,
-                     &Settings, &SettingsMenu::toggleWindow);
-    QObject::connect(&window1, &MainWindow::closeSettingsWindow,
-                     &Settings, &SettingsMenu::close);
-
-    //Setting Colour and Pen Sizes
-    QObject::connect(&Settings, &SettingsMenu::sendColour,
-                     &window1, &MainWindow::setColour );
-    QObject::connect(&Settings, &SettingsMenu::sendPenSize,
-                     &window1, &MainWindow::setPenSize);
-
-
     //Boolean Communication Protocol - BCP
     QObject::connect(&window1, &MainWindow::SEND_BIT,
                      &window2, &ChildWindow::IN_BIT);

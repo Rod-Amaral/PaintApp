@@ -26,7 +26,6 @@ private:
     MainWindow* Window;
     QPoint point;
     bool Line_Point; //Used to select between Line/Point Drawing
-
 };
 
 
@@ -42,12 +41,17 @@ public:
     void setOP_code(const uint8_t op);
     void setData1(const int16_t data);
     void setData2(const int16_t data);
+    void Resend();
 
 private:
     MainWindow* Window;
     uint8_t OP_code;
     int16_t data1;
     int16_t data2;
+
+    uint8_t previous_OP, current_OP;
+    int16_t previous_data1, current_data1;
+    int16_t previous_data2, current_data2;
 };
 
 #endif // TMAINTHREADS_H

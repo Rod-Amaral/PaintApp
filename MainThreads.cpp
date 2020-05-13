@@ -42,20 +42,42 @@ void MainImage_Thread::setToggle(const bool t)
     Line_Point = t;
 }
 
-
-
-
 mainSend::mainSend(MainWindow* const window)
-    : Window(window), OP_code(0), data1(0), data2(0)
+    : Window(window), OP_code(0), data1(0), data2(0), previous_OP(0), current_OP(0),
+      previous_data1(0), current_data1(0), previous_data2(0), current_data2(0)
 {}
 
+bool ParityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16_t data2)
+{
+    bool parity(0);
+
+    for(size_t i = 0; i<3; i++)
+    {
+        if((OP_code>>i)&1)
+                parity = !parity;
+    }
+    for(size_t i = 0; i<16; i++)
+    {
+        if((data1>>i)&1)
+                parity = !parity;
+        if((data2>>i)&1)
+                parity = !parity;
+    }
+    // 0 for even, 1 for odd
+    return parity;
+}
 
 void mainSend::run()
 {
+    //Send OP_code
     emit Window->SEND_BIT((bool)(OP_code & 1));
     emit Window->SEND_BIT((bool)(OP_code & 2));
     emit Window->SEND_BIT((bool)(OP_code & 4));
 
+    //Parity bit
+    emit Window->SEND_BIT(ParityCalculation(OP_code,data1,data2));
+
+    //Send data
     if((OP_code>1 && OP_code <4) || (OP_code == 7))
         emit Window->SEND_BIT(0);
     else
@@ -65,6 +87,11 @@ void mainSend::run()
         for(size_t i = 0; i<16; i++)
             emit Window->SEND_BIT((bool)1&(data2 >> i));
     }
+
+    //Hold last two commands and data, in case of parity fail, to resend them
+    previous_data1 = current_data1; previous_data2 = current_data2; previous_OP = current_OP;
+    current_data1 = data1; current_data2 = data2; current_OP = OP_code;
+    data1 = 0; data2 = 0;
 }
 
 void mainSend::setOP_code(const uint8_t op)
@@ -89,6 +116,25 @@ void mainSend::setData2(const int16_t data)
     mutex.lock();
     data2 = data;
     mutex.unlock();
+}
+
+//Resends previous two commands
+void mainSend::Resend()
+{
+    uint8_t holdCurrent_OP = current_OP;
+    int16_t holdCurrent_data1 = current_data1;
+    int16_t holdCurrent_data2 = current_data2;
+
+    setOP_code(previous_OP);
+    setData1(previous_data1);
+    setData2(previous_data2);
+    start();
+
+    while(isRunning()){}
+    setOP_code(holdCurrent_OP);
+    setData1(holdCurrent_data1);
+    setData2(holdCurrent_data2);
+    start();
 }
 
 /*

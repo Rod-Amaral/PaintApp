@@ -27,7 +27,8 @@ void PushButton::wasClicked()
 }
 
 SettingsMenu::SettingsMenu(QWidget* const parent)
-    : QWidget(parent, Qt::Window), Buttons(new PushButton[but_n]), penSizeBox(this)
+    : QWidget(parent, Qt::Window), Buttons(new PushButton[but_n]),
+      penSizeBox(this), penSetSizeButton(new PushButton[penBut_n])
 {
     setFixedSize(X_leng,Y_leng);
 
@@ -40,18 +41,6 @@ SettingsMenu::SettingsMenu(QWidget* const parent)
     }
     Buttons[0].setText(tr("PenSize"));
     Buttons[1].setText(tr("Colour"));
-
-    //Set PenSize button
-    QObject::connect(Buttons, &PushButton::sendPointer,
-                     this, &SettingsMenu::chooseSettings);
-
-    //Colour Buttons connections
-    for(size_t i = 4; i<but_n; i++)
-    {
-        Buttons[i].setParent(this);
-        QObject::connect(Buttons+i, &PushButton::sendPointer,
-                         this, &SettingsMenu::chooseColour);
-    }
 
     //Colour Buttons
     for(size_t i = special_b; i<but_n; i++)
@@ -70,7 +59,6 @@ SettingsMenu::SettingsMenu(QWidget* const parent)
     }
 
     //PenSize Buttons
-    penSetSizeButton = new PushButton[penBut_n];
     for(size_t i = 0; i<penBut_n; i++)
         penSetSizeButton[i].setParent(this);
 
@@ -92,20 +80,67 @@ SettingsMenu::SettingsMenu(QWidget* const parent)
     penSetSizeButton[penBut_n-1].setGeometry(0,boxHeight+X_leng,X_leng,boxHeight);
     penSetSizeButton[penBut_n-1].setText(tr("Set PenValue"));
 
-    //Set custom PenSize button
-    QObject::connect(penSetSizeButton+(penBut_n-1), &PushButton::clicked,
-                    this, &SettingsMenu::checkPenSize);
-
-    //Predifined Buttons for PenSize
+    //Predifined Buttons Icons for PenSize
     for(size_t i = 0; i<(penBut_n-1); i++)
     {
-        QObject::connect(penSetSizeButton+i, &PushButton::sendPointer,
-                         this, &SettingsMenu::choosePenSize);
+        static QPainter painter;
+
+        //Making Icons of a point with the different PenSizes, to be used by the buttons
+        QPixmap map(X_leng/2,X_leng/2);
+        map.fill(Qt::white);
+        painter.begin(&map);
+        painter.setPen(QPen(QBrush(Qt::black),(i+1)*4,Qt::SolidLine,Qt::RoundCap));
+        painter.drawPoint(map.width()/2,map.height()/2);
+
+        QIcon icon;
+        icon.addPixmap(map,QIcon::Normal,QIcon::On);
+
+        penSetSizeButton[i].setIcon(icon);
+        penSetSizeButton[i].setIconSize(map.rect().size().boundedTo(QSize(X_leng/2-1,X_leng/2-1)));
+
+        painter.end();
     }
 }
 
 void SettingsMenu::set()
 {
+    //Open and Close Settings Menu Connections
+    QObject::connect((MainWindow*)parentWidget(), &MainWindow::toggleSettingsWindow,
+                     this, &SettingsMenu::toggleWindow);
+    QObject::connect((MainWindow*)parentWidget(), &MainWindow::closeSettingsWindow,
+                     this, &SettingsMenu::close);
+
+    //Connections for Setting values of the MainWindow Pen
+    QObject::connect(this, &SettingsMenu::sendColour,
+                     (MainWindow*)parentWidget(), &MainWindow::setColour );
+    QObject::connect(this, &SettingsMenu::sendPenSize,
+                     (MainWindow*)parentWidget(), &MainWindow::setPenSize);
+
+    //Connections for Special buttons functions
+    for(size_t i = 0; i<special_b; i++)
+    {
+        QObject::connect(Buttons+i, &PushButton::sendPointer,
+                         this, &SettingsMenu::chooseSettings);
+    }
+
+    //Colour Buttons Connections
+    for(size_t i = 4; i<but_n; i++)
+    {
+        Buttons[i].setParent(this);
+        QObject::connect(Buttons+i, &PushButton::sendPointer,
+                         this, &SettingsMenu::chooseColour);
+    }
+
+    //Set Custom PenSize button, in PenSize menu
+    QObject::connect(penSetSizeButton+(penBut_n-1), &PushButton::clicked,
+                    this, &SettingsMenu::checkPenSize);
+
+    //Connections for pre-defined PenSize Buttons
+    for(size_t i = 0; i<(penBut_n-1) ;i++)
+    {
+        QObject::connect(penSetSizeButton+i, &PushButton::sendPointer,
+                         this, &SettingsMenu::choosePenSize);
+    }
 
 }
 

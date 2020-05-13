@@ -1,8 +1,8 @@
 #include "MainWindow.h"
 
 MainWindow::MainWindow(QWidget* const parent)
-    : QWidget(parent), brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 8, Qt::SolidLine, Qt::RoundCap),
-       Image(X_leng, Y_leng, QImage::Format_RGB32)
+    : QWidget(parent), canSend(true), brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 8, Qt::SolidLine, Qt::RoundCap),
+      Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
     resize(X_leng,Y_leng);
     ImageThread = new MainImage_Thread(this);
@@ -152,18 +152,21 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 void MainWindow::PARITY_IN(const bool bit)
 {
     if(bit)
-    {}
+    {
+        while(BCP_SendThread->isRunning()){}
+        BCP_SendThread->Resend();
+    }
+    else
+    {
+        static QMutex mutex;
+        mutex.lock();
+        canSend = true;
+        mutex.unlock();
+    }
 }
 
 void MainWindow::set()
 {
-    //Resize
-    while(BCP_SendThread->isRunning()){}
-    BCP_SendThread->setOP_code(6);
-    BCP_SendThread->setData1(X_leng);
-    BCP_SendThread->setData2(Y_leng);
-    BCP_SendThread->start();
-
     //Set Pen
     while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(4);

@@ -20,6 +20,9 @@ public:
     //Used to know if the left button was pressed
     bool wasLeftButton;
 
+    //Used to know if BCP_sendThread can send next signal
+    bool canSend;
+
     //Holds pen details, used in painting
     QBrush brush;
     QPen pen;
