@@ -43,8 +43,8 @@ public:
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
     void setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs);
+    void setPenSize(uint8_t penWidth);
     void set();
-
     void ClearImage();
 
 protected:
@@ -64,6 +64,7 @@ public:
 
 public slots:
     void setColour(uint32_t color);
+    void PARITY_IN(const bool bit);
 
 signals:
     void SEND_BIT(const bool bit);

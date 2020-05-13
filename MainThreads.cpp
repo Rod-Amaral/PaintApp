@@ -44,6 +44,7 @@ void MainImage_Thread::setToggle(const bool t)
 
 
 
+
 mainSend::mainSend(MainWindow* const window)
     : Window(window), OP_code(0), data1(0), data2(0)
 {}
@@ -51,39 +52,43 @@ mainSend::mainSend(MainWindow* const window)
 
 void mainSend::run()
 {
-    static QMutex mutex;
-    static uint8_t i;
-
-    mutex.lock();
     emit Window->SEND_BIT((bool)(OP_code & 1));
     emit Window->SEND_BIT((bool)(OP_code & 2));
     emit Window->SEND_BIT((bool)(OP_code & 4));
 
-    if(OP_code>1 && OP_code <4)
+    if((OP_code>1 && OP_code <4) || (OP_code == 7))
         emit Window->SEND_BIT(0);
     else
     {
-        for(i = 0; i<16; i++)
+        for(size_t i = 0; i<16; i++)
             emit Window->SEND_BIT((bool)1&(data1 >> i));
-        for(i = 0; i<16; i++)
+        for(size_t i = 0; i<16; i++)
             emit Window->SEND_BIT((bool)1&(data2 >> i));
     }
-    mutex.unlock();
 }
 
 void mainSend::setOP_code(const uint8_t op)
 {
+    static QMutex mutex;
+    mutex.lock();
     OP_code = op;
+    mutex.unlock();
 }
 
 void mainSend::setData1(const int16_t data)
 {
+    static QMutex mutex;
+    mutex.lock();
     data1 = data;
+    mutex.unlock();
 }
 
 void mainSend::setData2(const int16_t data)
 {
+    static QMutex mutex;
+    mutex.lock();
     data2 = data;
+    mutex.unlock();
 }
 
 /*
@@ -94,5 +99,7 @@ void mainSend::setData2(const int16_t data)
  3: ExitProgram
  4: Change Pen/Brush
  5: Change Color
+ 6: Resize
+ 7: FullsScreen
 */
 

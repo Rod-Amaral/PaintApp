@@ -45,6 +45,8 @@ protected:
 public slots:
     void IN_BIT(const bool bit);
 
+signals:
+    void PARITY_SEND(const bool bit);
 };
 
 #endif

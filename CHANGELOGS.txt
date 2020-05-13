@@ -1,7 +1,9 @@
 by: Rod-Amaral
 
-- Fixed bug where resizing led to crashing
-- Made push buttons for settings menu that change colour
+- Now capable of maximazing both windows
+- Now capable of adjusting pen size in settings menu
+- More Bug fixing
+- Added Predefined PenSize buttons
 
 NOTES:
 QImage is optmimized for I/O, great!

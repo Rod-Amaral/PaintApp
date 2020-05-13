@@ -37,38 +37,40 @@ void ChildWindow::resizeEvent(QResizeEvent *event)
     int16_t oldY = event->oldSize().height();
 
     mutex.lock();
-    if( (Image.width()<width()) || (Image.height()<height()) )
+    if( (Image.width()<event->size().width()) || (Image.height()<event->size().height()) )
     {
-        Image = Image.copy(0,0,width(),height());
+        Image = Image.copy(0,0,event->size().width(),event->size().height());
 
         static QPainter painter;
         painter.begin(&Image);
-        painter.fillRect(0,oldY,width(),(height()-oldY),Qt::white);
-        painter.fillRect(oldX,0,(width()-oldX),oldY,Qt::white);
+        painter.fillRect(QRect(QPoint(0,oldY), QSize(event->size().width(),(event->size().height()-oldY))), Qt::white);
+        painter.fillRect(oldX,0,(event->size().width()-oldX),oldY,Qt::white);
         painter.end();
-    }
-    static bool once = true;
-    if(once)
-    {
-        Image.fill(Qt::white);
-        once = false;
     }
     mutex.unlock();
 }
 
 void ChildWindow::PaintPoint(const QPoint & point)
 {
+    static QMutex mutex;
+
     while(ImageThread->isRunning()){}
+    mutex.lock();
     ImageThread->setPoint(point);
     ImageThread->setToggle(ChildImage_Thread::POINT);
+    mutex.unlock();
     ImageThread->start();
 }
 
 void ChildWindow::PaintLine(const QPoint & point)
 {
+    static QMutex mutex;
+
     while(ImageThread->isRunning()){}
+    mutex.lock();
     ImageThread->setPoint(point);
     ImageThread->setToggle(ChildImage_Thread::LINE);
+    mutex.unlock();
     ImageThread->start();
 }
 
@@ -85,7 +87,10 @@ void ChildWindow::ClearImage()
 
 void ChildWindow::IN_BIT(const bool bit)
 {
+    static QMutex mutex;
     while(BCP_ReceiveThread->isRunning()){}
+    mutex.lock();
     BCP_ReceiveThread->setBIT(bit);
+    mutex.unlock();
     BCP_ReceiveThread->start();
 }

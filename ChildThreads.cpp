@@ -77,7 +77,7 @@ void childReceive::run()
     {
         switch(OP_code)
         {
-        case 0:
+        case 0:             //DrawPoint, OPcode: 0  data1->x-coordinate  data2->y-coordinate
             if(i<16)
             {
                 data1 += (bit<<i);
@@ -96,7 +96,7 @@ void childReceive::run()
             }
             break;
 
-        case 1:
+        case 1:             //DrawLine, OPcode: 1  data1->x-coordinate  data2->y-coordinate
             if(i<16)
             {
                 data1 += (bit<<i);
@@ -115,16 +115,16 @@ void childReceive::run()
             }
                 break;
 
-        case 2:
+        case 2:             //ClearScreen, OPcode: 2  no data
             Window->ClearImage();
             OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0; i = 0;
             break;
 
-        case 3:
+        case 3:             //CloseWindow, OPcode: 3 no data
             Window->close();
             break;
 
-        case 4:
+        case 4:             //SetBrushPen, OPcode: 4  see data info below
             if(i<16)
             {
                 data1 += (bit<<i);
@@ -157,7 +157,7 @@ void childReceive::run()
             }
             break;
 
-        case 5:
+        case 5:             //ChangeColour, OPcode: 5  data1->LS bytes  data2->MS bytes,  32bit value total
             if(i<16)
             {
                 data1 += (bit<<i);
@@ -179,7 +179,7 @@ void childReceive::run()
             }
             break;
 
-        case 6:
+        case 6:             //Resize, OPcode: 6  data1->x-coordinate  data2->y-coordinate
             if(i<16)
             {
                 data1 += (bit<<i);
@@ -192,13 +192,15 @@ void childReceive::run()
 
                 if(i==32)
                 {
+                    Window->showNormal();
                     Window->resize(data1, data2);
                     i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
                 }
             }
             break;
 
-        case 7:
+        case 7:             //FullScreen, OPcode 7  no data
+            Window->showFullScreen();
             i = 0; OP_or_DATA = true; OP_code = 0; data1 = 0; data2 = 0;
             break;
 
