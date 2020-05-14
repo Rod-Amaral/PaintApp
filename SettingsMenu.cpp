@@ -140,6 +140,7 @@ void SettingsMenu::setPenButtons(PushButton* const & buttons, uint8_t amount, ui
     }
 }
 
+//Here we set the Slots and SIgnals
 void SettingsMenu::set()
 {
     //Open and Close Settings Menu Connections
