@@ -287,6 +287,8 @@ void SettingsMenu::checkPenSize()
     close();
 }
 
+
+//the ask functions show the butons for the selected menu
 void SettingsMenu::askBrushStyle()
 {
     for(size_t i = 0; i<4; i++)
@@ -329,6 +331,7 @@ void SettingsMenu::askPenJoinStyle()
 void SettingsMenu::askSync()
 {
     //Sorry again
+    //Here I ask to clear the Child Window, and start Syncing
     ((MainWindow*)parent())->BCP_SendThread->setOP_code(2);
     ((MainWindow*)parent())->BCP_SendThread->start();
     ((MainWindow*)parent())->stop = false;
@@ -432,7 +435,7 @@ void SettingsMenu::choosePenJoinStyle(PushButton* pointer)
     close();
 }
 
-//for the 4 special buttons - more to be implemented
+//for the 4 special buttons
 void SettingsMenu::chooseSettings(PushButton* pointer)
 {
     switch(pointer-Buttons)
@@ -505,5 +508,3 @@ void SettingsMenu::setPenJoinStyle_names(PushButton* const & buttons)
     buttons[2].setText(tr("RoundJoin"));
     buttons[3].setText(tr("SVGMiterJoin"));
 }
-
-

@@ -156,5 +156,7 @@ void mainSend::Resend()
  6: Resize
  7: FullsScreen
  8: LastPoint
+ 9: Sync
+ 10: skipped position, for Sync
 */
 

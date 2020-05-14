@@ -1,8 +1,6 @@
 by: Rod-Amaral
 
-- Can now sync the Child window with main window, if the child window is different form the main window,
-takes a while, but this is achieved by sending individual pixel data,
-this can be use for when the child window has an error / load image files
+- Cleaned up comments
 
 NOTES:
 QImage is optmimized for I/O, great!

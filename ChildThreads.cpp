@@ -88,14 +88,15 @@ void childReceive::run()
     static const uint8_t OP_code_bitsize(4);
 
     static bool OP_or_DATA(true); //used to determine to wether receiving OP_code or data
-    static bool executeCommand(false);
+    static bool executeCommand(false); //To signal, when data has been received
     static uint8_t i(0); //Used to keep track of which bit is being received
 
     static uint8_t OP_code(0);
     static int16_t data1(0), data2(0);
     static bool parity(0);
 
-    static uint16_t ii(0), jj(0); //Used for Image Sync
+    //Used for Image Sync
+    static uint16_t ii(0), jj(0);
     static uint16_t width(0);
     static uint16_t height(0);
 
@@ -103,7 +104,7 @@ void childReceive::run()
 
     //qDebug() << "First Send:\n" << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;
 
-    //First 3 bits received, determine the OP code, 4th for parity
+    //First 4 bits received, determine the OP code, 5th for parity
     if(OP_or_DATA)
     {
         if(i<OP_code_bitsize)
@@ -147,14 +148,17 @@ void childReceive::run()
         }
     }
 
+    //Here we esxute the command
     if(executeCommand)
     {
-        static bool parityFail_once(true);
+        static bool parityFail_once(true); //Used to make a parity erro at the beginning
+
         if(parityFail_once)
         {
             OP_code++;
             parityFail_once = false;
         }
+
         if(parity == parityCalculation(OP_code,data1,data2))
         {
             /*qDebug() << "Parity Success!";
@@ -218,20 +222,20 @@ void childReceive::run()
                 Window->LastPoint.setY(data2);
                 break;
 
-            case 9:             //Sync Image data
+            case 9:             //Sync Image data, OPcode: 9  data1->LS bytes  data2->MS bytes,  32bit value total
                 static bool getPixelAmount(true);
 
                 if(getPixelAmount)
                 {
                     width = data1;
                     height = data2;
-                    qDebug() << "Width: " << width << "Height: " << height;
+                    //qDebug() << "Width: " << width << "Height: " << height;
                     getPixelAmount = false;
                 }
                 else
                 {
-                    qDebug() << "RECEIVED: " << "i: " << ii << " j: " << jj << " color: " <<
-                                (QRgb)(uint32_t)(((uint16_t)data1)+(((uint16_t)data2)<<16));
+                    //qDebug() << "RECEIVED: " << "i: " << ii << " j: " << jj << " color: " <<
+                    //            (QRgb)(uint32_t)(((uint16_t)data1)+(((uint16_t)data2)<<16));
                     Window->Image.setPixel(ii,jj,((uint16_t)data1)+(((uint16_t)data2)<<16));
                     if(ii<width)
                         ii++;
@@ -248,15 +252,15 @@ void childReceive::run()
                     Window->update();
                 }
                 else
-                    Window->SendPixel();
+                    Window->SendPixel(); //Handhske, can send next pixel
                 break;
 
-            case 10:            //Skip Pixel, because it's white
-                qDebug() << "SKIPPED : " << "i: " << data1 << " j: " << data2;
+            case 10:            //Skip Pixel, OPcode: 10  data1-> ii  dat2-> jj
+                //qDebug() << "SKIPPED : " << "i: " << data1 << " j: " << data2;
                 ii = data1;
                 jj = data2;
                 if(jj != height)
-                    Window->SendPixel();
+                    Window->SendPixel(); //Handhske, can send next pixel
                 else
                 {
                     width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;

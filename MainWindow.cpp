@@ -1,5 +1,4 @@
 #include "MainWindow.h"
-#include "ChildWindow.h"
 
 MainWindow::MainWindow(QWidget* const parent)
     : QWidget(parent), initiate(true), stop(true), brush(Qt::darkGreen, Qt::SolidPattern),
@@ -37,62 +36,67 @@ void MainWindow::paintEvent(QPaintEvent *event)
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     static QPoint CurrentPoint;
-if(initiate)
-{
-    if(event->x()<=width() && event->y()<=height())
+
+    //If sync is on, don't take in commands
+    if(initiate)
     {
-        //Paints line on window and emits the same command for the other window
-        if(ImageThread->isFinished() && wasLeftButton)
+        if(event->x()<=width() && event->y()<=height())
         {
-            CurrentPoint.setX(event->x());
-            CurrentPoint.setY(event->y());
-            PaintLine(CurrentPoint);
-            SendPaintLine(CurrentPoint);
+            //Paints line on window and emits the same command for the other window
+            if(ImageThread->isFinished() && wasLeftButton)
+            {
+                CurrentPoint.setX(event->x());
+                CurrentPoint.setY(event->y());
+                PaintLine(CurrentPoint);
+                SendPaintLine(CurrentPoint);
+            }
+        }
+        else
+        {
+            LastPoint = QPoint(event->x(),event->y());
+            //Set Last Point OP_code, to prevent a bug when moving out of Window boundries
+            BCP_SendThread->setOP_code(8);
+            BCP_SendThread->setData1(event->x());
+            BCP_SendThread->setData2(event->y());
+            BCP_SendThread->start();
+
         }
     }
-    else
-    {
-        LastPoint = QPoint(event->x(),event->y());
-        //Set Last Point OP_code
-        BCP_SendThread->setOP_code(8);
-        BCP_SendThread->setData1(event->x());
-        BCP_SendThread->setData2(event->y());
-        BCP_SendThread->start();
-
-    }
-}
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     static QPoint CurrentPoint;
-if(initiate)
-{
-    if((event->button()==Qt::LeftButton))
+
+     //If sync is on, don't take in commands
+    if(initiate)
     {
-        //Paints point on window and emits the same command for the other window
-        if((ImageThread->isFinished() || LastPoint.isNull()))
+        if((event->button()==Qt::LeftButton))
         {
-            wasLeftButton = true;
-            CurrentPoint.setX(event->x());
-            CurrentPoint.setY(event->y());
-            PaintPoint(CurrentPoint);
-            SendPaintPoint(CurrentPoint);
+            //Paints point on window and emits the same command for the other window
+            if((ImageThread->isFinished() || LastPoint.isNull()))
+            {
+                wasLeftButton = true;
+                CurrentPoint.setX(event->x());
+                CurrentPoint.setY(event->y());
+                PaintPoint(CurrentPoint);
+                SendPaintPoint(CurrentPoint);
+            }
+            emit closeSettingsWindow();
         }
-        emit closeSettingsWindow();
+        else if((event->button()==Qt::RightButton)) //Toggle settings menu
+            emit toggleSettingsWindow(event->globalX(), event->globalY());
     }
-    else if((event->button()==Qt::RightButton))
-        emit toggleSettingsWindow(event->globalX(), event->globalY());
-}
 }
 
+//This is mostly used to prevent a bug when moving out of the window
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     if((event->button()==Qt::LeftButton))
         wasLeftButton = false;
 }
 
-static bool doClose(false);
+static bool doClose(false); // Used to implement Alt + f4
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     static QMutex mutex;
@@ -110,8 +114,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         update();
     }
+    //Alt + f4 to close window
     else if(event->key() == Qt::Key_Alt)
         doClose = true;
+    //f11 for FullScreen
     else if(event->key() == Qt::Key_F11)
     {
         if(isFullScreen())
@@ -128,6 +134,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event)
 {
+    //If Alt released, don't allow ALt+f4
     if(event->key() == Qt::Key_Alt)
         doClose = false;
 }
@@ -135,12 +142,13 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     static QMutex mutex;
-    int16_t oldX = event->oldSize().width();
-    int16_t oldY = event->oldSize().height();
 
     mutex.lock();
     if( (Image.width()<width()) || (Image.height()<height()) )
     {
+        int16_t oldX = event->oldSize().width();
+        int16_t oldY = event->oldSize().height();
+
         //Resized Image baground is black
         Image = Image.copy(0,0,width(),height());
 
@@ -160,8 +168,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     {
         //Resize Window OP_code
         BCP_SendThread->setOP_code(6);
-        BCP_SendThread->setData1(width());
-        BCP_SendThread->setData2(height());
+        BCP_SendThread->setData1(event->size().width());
+        BCP_SendThread->setData2(event->size().height());
     }
     BCP_SendThread->start();
 }
@@ -175,6 +183,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
+//If parity was wrong, Resend
 void MainWindow::PARITY_IN(const bool bit)
 {
     if(bit)
@@ -239,7 +248,7 @@ void MainWindow::SyncImages()
         if(skiped)
         {
             //Send new position
-            qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
+            //qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
             BCP_SendThread->setOP_code(10);
             BCP_SendThread->setData1(i);
             BCP_SendThread->setData2(j);
@@ -249,7 +258,7 @@ void MainWindow::SyncImages()
         else
         {
             //Send pixel data
-            qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
+            //qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
             BCP_SendThread->setOP_code(9);
             BCP_SendThread->setData1(Image.pixel(i,j) & 0xFFFF);
             BCP_SendThread->setData2((Image.pixel(i,j)>>16) & (0xFFFF));
@@ -390,7 +399,7 @@ void MainWindow::setColour(QRgb color)
     pen.setBrush(brush);
     mutex.unlock();
 
-    //Set Colourt OP code
+    //Set Colour OP code
     while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(5);
     BCP_SendThread->setData1((color & 65535));
@@ -444,5 +453,3 @@ void MainWindow::SendPaintLine(const QPoint & CurrentPoint)
     BCP_SendThread->setData2(CurrentPoint.y());
     BCP_SendThread->start();
 }
-
-
