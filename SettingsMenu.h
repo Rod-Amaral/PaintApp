@@ -50,6 +50,7 @@ public:
      void askPenStyle();
      void askPenCapStyle();
      void askPenJoinStyle();
+     void askSync();
 
      void setPenButtons(PushButton* const & buttons, uint8_t amount, uint16_t extraSize);
      void setPenSettings_names(PushButton*const & buttons);

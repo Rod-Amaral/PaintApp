@@ -41,9 +41,10 @@ SettingsMenu::SettingsMenu(QWidget* const parent)
         Buttons[i].resize(X_leng/2,X_leng/2);
         Buttons[i].move( (i%2)*(X_leng/2), ((i/2)%(i+1))*(X_leng/2) );
     }
-    Buttons[0].setText(tr("PenSize"));
+    Buttons[0].setText(tr("Pen\nSize"));
     Buttons[1].setText(tr("Colour"));
     Buttons[2].setText(tr("Custom\nPen"));
+    Buttons[3].setText(tr("Sync"));
 
     //Colour Buttons
     for(size_t i = special_b; i<but_n; i++)
@@ -325,6 +326,16 @@ void SettingsMenu::askPenJoinStyle()
         PenJoin_buttons[i].show();
 }
 
+void SettingsMenu::askSync()
+{
+    //Sorry again
+    ((MainWindow*)parent())->BCP_SendThread->setOP_code(2);
+    ((MainWindow*)parent())->BCP_SendThread->start();
+    ((MainWindow*)parent())->stop = false;
+    ((MainWindow*)parent())->SyncImages();
+    close();
+}
+
 //Toggles settings menu, and when openeing moves it to the received mouse coordinate from main window
 void SettingsMenu::toggleWindow(const int x, const int y)
 {
@@ -434,6 +445,9 @@ void SettingsMenu::chooseSettings(PushButton* pointer)
             break;
         case 2:
             askPenSettings();
+            break;
+        case 3:
+            askSync();
             break;
     }
 }

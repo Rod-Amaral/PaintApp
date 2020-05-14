@@ -20,6 +20,7 @@ public:
 
     //Used to initiate A Sync command, and prevent the rest of the program from running
     bool initiate;
+    bool stop;
 
     //Used to know if the left button was pressed
     bool wasLeftButton;
@@ -56,6 +57,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 

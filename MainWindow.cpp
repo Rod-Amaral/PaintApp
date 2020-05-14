@@ -2,7 +2,7 @@
 #include "ChildWindow.h"
 
 MainWindow::MainWindow(QWidget* const parent)
-    : QWidget(parent), initiate(true), brush(Qt::darkGreen, Qt::SolidPattern),
+    : QWidget(parent), initiate(true), stop(true), brush(Qt::darkGreen, Qt::SolidPattern),
       pen(brush, 8, Qt::SolidLine, Qt::RoundCap), Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
     resize(X_leng,Y_leng);
@@ -92,7 +92,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
         wasLeftButton = false;
 }
 
-static bool stop(true);
+static bool doClose(false);
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     static QMutex mutex;
@@ -110,23 +110,26 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         update();
     }
-    else if(event->key() == Qt::Key_C)
-        close();
-    else if(event->key() == Qt::Key_X)
+    else if(event->key() == Qt::Key_Alt)
+        doClose = true;
+    else if(event->key() == Qt::Key_F11)
     {
         if(isFullScreen())
             showNormal();
         else
             showFullScreen();
     }
-    else if(event->key() == Qt::Key_V)
+    if((event->key() == Qt::Key_F4) && doClose)
     {
-        //Clear Image OP code
-        BCP_SendThread->setOP_code(2);
-        BCP_SendThread->start();
-        stop = false;
-        SyncImages();
+        close();
+        doClose = false;
     }
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Alt)
+        doClose = false;
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -435,13 +438,11 @@ void MainWindow::SendPaintPoint(const QPoint & CurrentPoint)
 void MainWindow::SendPaintLine(const QPoint & CurrentPoint)
 {
     //Send Line OP code
-    /*
     while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(1);
     BCP_SendThread->setData1(CurrentPoint.x());
     BCP_SendThread->setData2(CurrentPoint.y());
     BCP_SendThread->start();
-    */
 }
 
 

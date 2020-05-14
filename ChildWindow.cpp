@@ -50,6 +50,24 @@ void ChildWindow::resizeEvent(QResizeEvent *event)
     mutex.unlock();
 }
 
+static bool doClose(false);
+void ChildWindow::keyPressEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Alt)
+        doClose = true;
+    if((event->key() == Qt::Key_F4) && doClose)
+    {
+        doClose = false;
+        close();
+    }
+}
+
+void ChildWindow::keyReleaseEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Alt)
+        doClose = false;
+}
+
 void ChildWindow::PaintPoint(const QPoint & point)
 {
     static QMutex mutex;

@@ -36,6 +36,8 @@ public:
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
     void resizeEvent(QResizeEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
     void ClearImage();
 
