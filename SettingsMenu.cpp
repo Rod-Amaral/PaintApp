@@ -361,6 +361,7 @@ void SettingsMenu::showEvent(QShowEvent *event)
         PenJoin_buttons[i].hide();
 }
 
+//Using the Enter key to set custom PenSize
 void SettingsMenu::keyPressEvent(QKeyEvent *event)
 {
     //If selecting PenSize, pressing enter will set PenSize

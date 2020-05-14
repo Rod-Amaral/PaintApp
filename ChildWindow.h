@@ -47,6 +47,7 @@ public slots:
 
 signals:
     void PARITY_SEND(const bool bit);
+    void SendPixel();
 };
 
 #endif

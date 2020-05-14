@@ -1,8 +1,9 @@
 #include "MainWindow.h"
+#include "ChildWindow.h"
 
 MainWindow::MainWindow(QWidget* const parent)
-    : QWidget(parent), brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 8, Qt::SolidLine, Qt::RoundCap),
-      Image(X_leng, Y_leng, QImage::Format_RGB32)
+    : QWidget(parent), initiate(true), brush(Qt::darkGreen, Qt::SolidPattern),
+      pen(brush, 8, Qt::SolidLine, Qt::RoundCap), Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
     resize(X_leng,Y_leng);
     ImageThread = new MainImage_Thread(this);
@@ -36,7 +37,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     static QPoint CurrentPoint;
-
+if(initiate)
+{
     if(event->x()<=width() && event->y()<=height())
     {
         //Paints line on window and emits the same command for the other window
@@ -59,11 +61,13 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
     }
 }
+}
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     static QPoint CurrentPoint;
-
+if(initiate)
+{
     if((event->button()==Qt::LeftButton))
     {
         //Paints point on window and emits the same command for the other window
@@ -80,6 +84,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     else if((event->button()==Qt::RightButton))
         emit toggleSettingsWindow(event->globalX(), event->globalY());
 }
+}
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -87,6 +92,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
         wasLeftButton = false;
 }
 
+static bool stop(true);
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     static QMutex mutex;
@@ -115,12 +121,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     else if(event->key() == Qt::Key_V)
     {
-        static bool t = 0;
-        if(t)
-            setPen(Qt::Dense4Pattern, Qt::SolidLine, 8, Qt::RoundCap, Qt::SvgMiterJoin);
-        else
-            setPen(Qt::SolidPattern, Qt::DashLine, 20, Qt::SquareCap, Qt::RoundJoin);
-        t = !t;
+        //Clear Image OP code
+        BCP_SendThread->setOP_code(2);
+        BCP_SendThread->start();
+        stop = false;
+        SyncImages();
     }
 }
 
@@ -186,6 +191,91 @@ void MainWindow::set()
     BCP_SendThread->start();
 
     update();
+}
+
+void MainWindow::SyncImages()
+{
+    static QMutex mutex;
+    static uint16_t i(0), j(0);
+    static bool skiped(false);
+
+    if(!stop){
+    //Makes reveiver thread ready to take pixel data
+    if(initiate)
+    {
+        BCP_SendThread->setOP_code(9);
+        mutex.lock();
+        BCP_SendThread->setData1(Image.width());
+        BCP_SendThread->setData2(Image.height());
+        mutex.unlock();
+        BCP_SendThread->start();
+    }
+
+    //Starts sending pixel data
+    if(!initiate)
+    {
+        //Keep going through pixels, until finding one that isn't white
+        while(Image.pixel(i,j) == 4294967295)
+        {
+            if(i<Image.width())
+                i++;
+            if(i==Image.width())
+            {
+                j++;
+                i = 0;
+            }
+            skiped = true;
+            if(j == Image.height())
+            {
+                i = 0;
+                j = Image.height();
+                break;
+            }
+        }
+
+        if(skiped)
+        {
+            //Send new position
+            qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
+            BCP_SendThread->setOP_code(10);
+            BCP_SendThread->setData1(i);
+            BCP_SendThread->setData2(j);
+            BCP_SendThread->start();
+            skiped = false;
+        }
+        else
+        {
+            //Send pixel data
+            qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
+            BCP_SendThread->setOP_code(9);
+            BCP_SendThread->setData1(Image.pixel(i,j) & 0xFFFF);
+            BCP_SendThread->setData2((Image.pixel(i,j)>>16) & (0xFFFF));
+            BCP_SendThread->start();
+
+            //Goes one pixel ahed
+            if(i<Image.width())
+                i++;
+            if(i==Image.width())
+            {
+                j++;
+                i = 0;
+            }
+            if(j == Image.height())
+            {
+                i = 0;
+                j = Image.height();
+            }
+        }
+    }
+    if(initiate)
+        initiate = false;
+    if(j == Image.height())
+    {
+        initiate = true;
+        i = 0; j = 0; skiped = false;
+        stop = true;
+    }
+  }
 }
 
 void MainWindow::setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs)
@@ -345,11 +435,13 @@ void MainWindow::SendPaintPoint(const QPoint & CurrentPoint)
 void MainWindow::SendPaintLine(const QPoint & CurrentPoint)
 {
     //Send Line OP code
+    /*
     while(BCP_SendThread->isRunning()){}
     BCP_SendThread->setOP_code(1);
     BCP_SendThread->setData1(CurrentPoint.x());
     BCP_SendThread->setData2(CurrentPoint.y());
     BCP_SendThread->start();
+    */
 }
 
 

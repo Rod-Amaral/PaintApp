@@ -48,6 +48,20 @@ childReceive::childReceive(ChildWindow* const window)
     : Window(window)
 {}
 
+void Backtrack(uint16_t & i, uint16_t & j, const uint16_t maxI)
+{
+    if(i>1)
+        i -= 2;
+    else
+    {
+        if(i)
+            i = maxI;
+        else
+            i = maxI-1;
+        j--;
+    }
+}
+
 bool parityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16_t data2)
 {
     bool parity(0);
@@ -80,6 +94,10 @@ void childReceive::run()
     static uint8_t OP_code(0);
     static int16_t data1(0), data2(0);
     static bool parity(0);
+
+    static uint16_t ii(0), jj(0); //Used for Image Sync
+    static uint16_t width(0);
+    static uint16_t height(0);
 
     static QMutex mutex;
 
@@ -186,7 +204,9 @@ void childReceive::run()
 
             case 6:             //Resize, OPcode: 6  data1->x-coordinate  data2->y-coordinate
                 Window->showNormal();
+                mutex.lock();
                 Window->resize(data1, data2);
+                mutex.unlock();
                 break;
 
             case 7:             //FullScreen, OPcode: 7  no data
@@ -197,11 +217,61 @@ void childReceive::run()
                 Window->LastPoint.setX(data1);
                 Window->LastPoint.setY(data2);
                 break;
+
+            case 9:             //Sync Image data
+                static bool getPixelAmount(true);
+
+                if(getPixelAmount)
+                {
+                    width = data1;
+                    height = data2;
+                    qDebug() << "Width: " << width << "Height: " << height;
+                    getPixelAmount = false;
+                }
+                else
+                {
+                    qDebug() << "RECEIVED: " << "i: " << ii << " j: " << jj << " color: " <<
+                                (QRgb)(uint32_t)(((uint16_t)data1)+(((uint16_t)data2)<<16));
+                    Window->Image.setPixel(ii,jj,((uint16_t)data1)+(((uint16_t)data2)<<16));
+                    if(ii<width)
+                        ii++;
+                    if(ii==width)
+                    {
+                        jj++;
+                        ii = 0;
+                    }
+
+                }
+                if(height == jj)
+                {
+                    width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
+                    Window->update();
+                }
+                else
+                    Window->SendPixel();
+                break;
+
+            case 10:            //Skip Pixel, because it's white
+                qDebug() << "SKIPPED : " << "i: " << data1 << " j: " << data2;
+                ii = data1;
+                jj = data2;
+                if(jj != height)
+                    Window->SendPixel();
+                else
+                {
+                    width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
+                    Window->update();
+                }
             }
             Window->PARITY_SEND(0);
         }
         else //If parity failed
         {
+            if((OP_code==9) && (ii==1 && !jj))
+                ii--;
+            else if((OP_code==9) && !(ii==1 && !jj))
+                Backtrack(ii,jj,width);
+
             /*qDebug() << "Parity Failed!";
             qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
             Window->PARITY_SEND(1);

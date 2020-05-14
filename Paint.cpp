@@ -17,6 +17,9 @@ int main(int argc, char** argv)
     QObject::connect(&window2, &ChildWindow::PARITY_SEND,
                      &window1, &MainWindow::PARITY_IN);
 
+    QObject::connect(&window2, &ChildWindow::SendPixel,
+                     &window1, &MainWindow::SyncImages);
+
     window1.setWindowTitle("Main Window");
     window2.setWindowTitle("Child Window");
     Settings.setWindowTitle("Pick");

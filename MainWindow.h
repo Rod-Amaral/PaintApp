@@ -9,6 +9,7 @@
 #include "MainThreads.h"
 
 //Main Window class
+class ChildWindow;
 class MainWindow : public QWidget
 {
     Q_OBJECT
@@ -16,6 +17,9 @@ class MainWindow : public QWidget
 public:
     MainWindow(QWidget* const parent = 0);
     ~MainWindow();
+
+    //Used to initiate A Sync command, and prevent the rest of the program from running
+    bool initiate;
 
     //Used to know if the left button was pressed
     bool wasLeftButton;
@@ -69,6 +73,8 @@ public slots:
     void setPenCapStyle(Qt::PenCapStyle pcs);
     void setPenJoinStyle(Qt::PenJoinStyle pjs);
     void PARITY_IN(const bool bit);
+
+    void SyncImages();
 
 signals:
     void SEND_BIT(const bool bit);
