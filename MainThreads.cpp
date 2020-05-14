@@ -42,6 +42,8 @@ void MainImage_Thread::setToggle(const bool t)
     Line_Point = t;
 }
 
+
+
 mainSend::mainSend(MainWindow* const window)
     : Window(window), OP_code(0), data1(0), data2(0), previous_OP(0), current_OP(0),
       previous_data1(0), current_data1(0), previous_data2(0), current_data2(0)
@@ -73,6 +75,7 @@ void mainSend::run()
     emit Window->SEND_BIT((bool)(OP_code & 1));
     emit Window->SEND_BIT((bool)(OP_code & 2));
     emit Window->SEND_BIT((bool)(OP_code & 4));
+    emit Window->SEND_BIT((bool)(OP_code & 8));
 
     //Parity bit
     emit Window->SEND_BIT(ParityCalculation(OP_code,data1,data2));
@@ -121,6 +124,8 @@ void mainSend::setData2(const int16_t data)
 //Resends previous two commands
 void mainSend::Resend()
 {
+    static QMutex mutex;
+    mutex.lock();
     uint8_t holdCurrent_OP = current_OP;
     int16_t holdCurrent_data1 = current_data1;
     int16_t holdCurrent_data2 = current_data2;
@@ -128,12 +133,15 @@ void mainSend::Resend()
     setOP_code(previous_OP);
     setData1(previous_data1);
     setData2(previous_data2);
+    mutex.unlock();
     start();
 
     while(isRunning()){}
+    mutex.lock();
     setOP_code(holdCurrent_OP);
     setData1(holdCurrent_data1);
     setData2(holdCurrent_data2);
+    mutex.unlock();
     start();
 }
 
@@ -147,5 +155,6 @@ void mainSend::Resend()
  5: Change Color
  6: Resize
  7: FullsScreen
+ 8: LastPoint
 */
 

@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
 MainWindow::MainWindow(QWidget* const parent)
-    : QWidget(parent), canSend(true), brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 8, Qt::SolidLine, Qt::RoundCap),
+    : QWidget(parent), brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 8, Qt::SolidLine, Qt::RoundCap),
       Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
     resize(X_leng,Y_leng);
@@ -49,8 +49,17 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         }
     }
     else
+    {
         LastPoint = QPoint(event->x(),event->y());
+        //Set Last Point OP_code
+        BCP_SendThread->setOP_code(8);
+        BCP_SendThread->setData1(event->x());
+        BCP_SendThread->setData2(event->y());
+        BCP_SendThread->start();
+
+    }
 }
+
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     static QPoint CurrentPoint;
@@ -87,10 +96,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         mutex.lock();
         Image.fill(Qt::white);
+        mutex.unlock();
 
         //Clear Image OP code
         BCP_SendThread->setOP_code(2);
-        mutex.unlock();
         BCP_SendThread->start();
 
         update();
@@ -149,19 +158,21 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     BCP_SendThread->start();
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    //Close Window OP code
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(3);
+    BCP_SendThread->start();
+    event->accept();
+}
+
 void MainWindow::PARITY_IN(const bool bit)
 {
     if(bit)
     {
         while(BCP_SendThread->isRunning()){}
         BCP_SendThread->Resend();
-    }
-    else
-    {
-        static QMutex mutex;
-        mutex.lock();
-        canSend = true;
-        mutex.unlock();
     }
 }
 
@@ -214,6 +225,70 @@ void MainWindow::setPenSize(uint8_t penWidth)
     BCP_SendThread->start();
 }
 
+void MainWindow::setBrushStyle(Qt::BrushStyle bs)
+{
+    static QMutex mutex;
+qDebug() << bs;
+    mutex.lock();
+    brush.setStyle(bs);
+    pen.setBrush(brush);
+    mutex.unlock();
+
+    //Pen Settings OP code
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(4);
+    BCP_SendThread->setData1( ((unsigned int)brush.style()) + ((unsigned int)(pen.style()<<5)) + ((unsigned int)(pen.width()<<8)) );
+    BCP_SendThread->setData2( ((unsigned int)(pen.capStyle()/0x10)) + ((unsigned int)( (pen.joinStyle()<0x100) ? (pen.joinStyle()/0x40) : 0b11 )<<2) );
+    BCP_SendThread->start();
+}
+
+void MainWindow::setPenStyle(Qt::PenStyle ps)
+{
+    static QMutex mutex;
+
+    mutex.lock();
+    pen.setStyle(ps);
+    mutex.unlock();
+
+    //Pen Settings OP code
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(4);
+    BCP_SendThread->setData1( ((unsigned int)brush.style()) + ((unsigned int)(pen.style()<<5)) + ((unsigned int)(pen.width()<<8)) );
+    BCP_SendThread->setData2( ((unsigned int)(pen.capStyle()/0x10)) + ((unsigned int)( (pen.joinStyle()<0x100) ? (pen.joinStyle()/0x40) : 0b11 )<<2) );
+    BCP_SendThread->start();
+}
+void MainWindow::setPenCapStyle(Qt::PenCapStyle pcs)
+{
+    static QMutex mutex;
+
+    mutex.lock();
+    pen.setCapStyle(pcs);
+    mutex.unlock();
+
+    //Pen Settings OP code
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(4);
+    BCP_SendThread->setData1( ((unsigned int)brush.style()) + ((unsigned int)(pen.style()<<5)) + ((unsigned int)(pen.width()<<8)) );
+    BCP_SendThread->setData2( ((unsigned int)(pen.capStyle()/0x10)) + ((unsigned int)( (pen.joinStyle()<0x100) ? (pen.joinStyle()/0x40) : 0b11 )<<2) );
+    BCP_SendThread->start();
+}
+
+void MainWindow::setPenJoinStyle(Qt::PenJoinStyle pjs)
+{
+    static QMutex mutex;
+
+    mutex.lock();
+    pen.setJoinStyle(pjs);
+    mutex.unlock();
+
+    //Pen Settings OP code
+    while(BCP_SendThread->isRunning()){}
+    BCP_SendThread->setOP_code(4);
+    BCP_SendThread->setData1( ((unsigned int)brush.style()) + ((unsigned int)(pen.style()<<5)) + ((unsigned int)(pen.width()<<8)) );
+    BCP_SendThread->setData2( ((unsigned int)(pen.capStyle()/0x10)) + ((unsigned int)( (pen.joinStyle()<0x100) ? (pen.joinStyle()/0x40) : 0b11 )<<2) );
+    BCP_SendThread->start();
+}
+
 void MainWindow::setColour(QRgb color)
 {
     static QMutex mutex;
@@ -228,15 +303,6 @@ void MainWindow::setColour(QRgb color)
     BCP_SendThread->setData1((color & 65535));
     BCP_SendThread->setData2((color>>16) & 65535);
     BCP_SendThread->start();
-}
-
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    //Close Window OP code
-    while(BCP_SendThread->isRunning()){}
-    BCP_SendThread->setOP_code(3);
-    BCP_SendThread->start();
-    event->accept();
 }
 
 void MainWindow::PaintPoint(const QPoint & point)

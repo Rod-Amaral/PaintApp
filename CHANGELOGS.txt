@@ -1,13 +1,7 @@
 by: Rod-Amaral
 
-- Parity check system now working,
-If a parity error is found, the two previous data packets are asked to be sent again,
-so the the wrong data packet isn't sent after a data packet it was ment to be sent before.
-
-logic:
-parity error-> packet denied-> another packet possibly is sent in between ->
--> denied
-packet is sent again-> the packet in between is sent again, so correct order is perserved
+- Added Custom Colour Selection menu
+- Added Custom Pen Settings Menu
 
 NOTES:
 QImage is optmimized for I/O, great!

@@ -20,9 +20,6 @@ public:
     //Used to know if the left button was pressed
     bool wasLeftButton;
 
-    //Used to know if BCP_sendThread can send next signal
-    bool canSend;
-
     //Holds pen details, used in painting
     QBrush brush;
     QPen pen;
@@ -46,7 +43,6 @@ public:
     void PaintPoint(const QPoint & point);
     void PaintLine(const QPoint & point);
     void setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs);
-    void setPenSize(uint8_t penWidth);
     void set();
     void ClearImage();
 
@@ -67,6 +63,11 @@ public:
 
 public slots:
     void setColour(uint32_t color);
+    void setPenSize(uint8_t penWidth);
+    void setBrushStyle(Qt::BrushStyle bs);
+    void setPenStyle(Qt::PenStyle ps);
+    void setPenCapStyle(Qt::PenCapStyle pcs);
+    void setPenJoinStyle(Qt::PenJoinStyle pjs);
     void PARITY_IN(const bool bit);
 
 signals:

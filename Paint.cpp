@@ -9,7 +9,6 @@ int main(int argc, char** argv)
     MainWindow window1;
     ChildWindow window2;
     SettingsMenu Settings(&window1);
-    Settings.set();
 
     //Boolean Communication Protocol - BCP
     QObject::connect(&window1, &MainWindow::SEND_BIT,
@@ -22,7 +21,9 @@ int main(int argc, char** argv)
     window2.setWindowTitle("Child Window");
     Settings.setWindowTitle("Pick");
 
+    //Some stuff to do
     window1.set();
+    Settings.set();
 
     window2.move(0,0);
     window1.move(1920,0);

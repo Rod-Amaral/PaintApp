@@ -71,7 +71,7 @@ bool parityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16
 //Ok, this is kinda messy, but it has to be
 void childReceive::run()
 {
-    static const uint8_t OP_code_bitsize(3);
+    static const uint8_t OP_code_bitsize(4);
 
     static bool OP_or_DATA(true); //used to determine to wether receiving OP_code or data
     static bool executeCommand(false);
@@ -134,14 +134,13 @@ void childReceive::run()
         static bool parityFail_once(true);
         if(parityFail_once)
         {
-            qDebug() << "parity fail!";
             OP_code++;
             parityFail_once = false;
         }
         if(parity == parityCalculation(OP_code,data1,data2))
         {
-            qDebug() << "Parity Success!";
-            qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;
+            /*qDebug() << "Parity Success!";
+            qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
             switch(OP_code)
             {
             case 0:             //DrawPoint, OPcode: 0  data1->x-coordinate  data2->y-coordinate
@@ -190,17 +189,21 @@ void childReceive::run()
                 Window->resize(data1, data2);
                 break;
 
-            case 7:             //FullScreen, OPcode 7  no data
+            case 7:             //FullScreen, OPcode: 7  no data
                 Window->showFullScreen();
                 break;
 
+            case 8:             //Set LastPoint, OPcode: 8  data1->x-coordinate  data2->y-coordinate
+                Window->LastPoint.setX(data1);
+                Window->LastPoint.setY(data2);
+                break;
             }
             Window->PARITY_SEND(0);
         }
         else //If parity failed
         {
-            qDebug() << "Parity Failed!";
-            qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;
+            /*qDebug() << "Parity Failed!";
+            qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
             Window->PARITY_SEND(1);
         }
         i = 0; OP_or_DATA = true; executeCommand = false; OP_code = 0; data1 = 0; data2 = 0; parity = 0;
