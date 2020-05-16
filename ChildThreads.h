@@ -5,6 +5,11 @@
 #include <QMutex>
 #include <QPoint>
 
+extern bool BIT;
+extern bool DO_READ;
+
+extern bool RESEND;
+
 class ChildWindow;
 
 //Class used for multithreading in painting to Images
@@ -40,6 +45,7 @@ public:
     void run() override;
 
     void setBIT(const bool b);
+    void RESEND_SEND(const bool bit);
 
 private:
     ChildWindow* Window;

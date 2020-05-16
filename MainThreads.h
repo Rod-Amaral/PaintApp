@@ -4,6 +4,13 @@
 #include <QThread>
 #include <QMutex>
 #include <QPoint>
+#include <QDebug>
+#include <chrono>
+
+extern bool BIT;
+extern bool DO_READ;
+
+extern bool RESEND;
 
 class MainWindow;
 
@@ -42,6 +49,8 @@ public:
     void setData1(const int16_t data);
     void setData2(const int16_t data);
     void Resend();
+
+    void SEND_BIT(bool bit);
 
 private:
     MainWindow* Window;

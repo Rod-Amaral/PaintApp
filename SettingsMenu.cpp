@@ -98,7 +98,6 @@ SettingsMenu::SettingsMenu(QWidget* const parent)
 
         QIcon icon;
         icon.addPixmap(map,QIcon::Normal,QIcon::On);
-
         penSetSizeButton[i].setIcon(icon);
         penSetSizeButton[i].setIconSize(map.rect().size().boundedTo(QSize(X_leng/2-1,X_leng/2-1)));
 
@@ -124,7 +123,6 @@ SettingsMenu::SettingsMenu(QWidget* const parent)
     //PenJoinStyle Buttons (PenJoin_buttons)
     setPenButtons(PenJoin_buttons, 4, 0);
     setPenJoinStyle_names(PenJoin_buttons);
-
 }
 
 void SettingsMenu::setPenButtons(PushButton* const & buttons, uint8_t amount, uint16_t extraSize)
@@ -281,14 +279,6 @@ void SettingsMenu::askPenSettings()
         PenSettings_buttons[i].show();
 }
 
-//Checks PenSize in the box and sends that value to MainWindow
-void SettingsMenu::checkPenSize()
-{
-    emit sendPenSize(penSizeBox.value());
-    close();
-}
-
-
 //the ask functions show the butons for the selected menu
 void SettingsMenu::askBrushStyle()
 {
@@ -339,6 +329,14 @@ void SettingsMenu::askSync()
     ((MainWindow*)parent())->SyncImages();
     close();
 }
+
+//Checks PenSize in the box and sends that value to MainWindow
+void SettingsMenu::checkPenSize()
+{
+    emit sendPenSize(penSizeBox.value());
+    close();
+}
+
 
 //Toggles settings menu, and when openeing moves it to the received mouse coordinate from main window
 void SettingsMenu::toggleWindow(const int x, const int y)

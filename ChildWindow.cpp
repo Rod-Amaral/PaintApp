@@ -1,7 +1,7 @@
 #include "ChildWindow.h"
 
 ChildWindow::ChildWindow(QWidget* const parent)
-    : QWidget(parent),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
+    : QWidget(parent), initiate(true),  brush(Qt::darkGreen, Qt::SolidPattern), pen(brush, 4, Qt::DotLine, Qt::RoundCap),
       Image(1, 1, QImage::Format_RGB32)
 {
     ImageThread = new ChildImage_Thread(this);
@@ -34,20 +34,25 @@ void ChildWindow::resizeEvent(QResizeEvent *event)
 {
     static QMutex mutex;
 
-    mutex.lock();
-    if( (Image.width()<event->size().width()) || (Image.height()<event->size().height()) )
+    if(initiate)
     {
-        int16_t oldX = event->oldSize().width();
-        int16_t oldY = event->oldSize().height();
-        Image = Image.copy(0,0,event->size().width(),event->size().height());
+        mutex.lock();
+        if( (Image.width()<event->size().width()) || (Image.height()<event->size().height()) )
+        {
+            int16_t oldX = event->oldSize().width();
+            int16_t oldY = event->oldSize().height();
+            Image = Image.copy(0,0,event->size().width(),event->size().height());
 
-        static QPainter painter;
-        painter.begin(&Image);
-        painter.fillRect(QRect(QPoint(0,oldY), QSize(event->size().width(),(event->size().height()-oldY))), Qt::white);
-        painter.fillRect(oldX,0,(event->size().width()-oldX),oldY,Qt::white);
-        painter.end();
+            static QPainter painter;
+            painter.begin(&Image);
+            painter.fillRect(QRect(QPoint(0,oldY), QSize(event->size().width(),(event->size().height()-oldY))), Qt::white);
+            painter.fillRect(oldX,0,(event->size().width()-oldX),oldY,Qt::white);
+            painter.end();
+        }
+        mutex.unlock();
     }
-    mutex.unlock();
+    else
+        event->ignore();
 }
 
 static bool doClose(false);
@@ -101,14 +106,4 @@ void ChildWindow::ClearImage()
     Image.fill(Qt::white);
     mutex.unlock();
     update();
-}
-
-void ChildWindow::IN_BIT(const bool bit)
-{
-    static QMutex mutex;
-    while(BCP_ReceiveThread->isRunning()){}
-    mutex.lock();
-    BCP_ReceiveThread->setBIT(bit);
-    mutex.unlock();
-    BCP_ReceiveThread->start();
 }

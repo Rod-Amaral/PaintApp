@@ -38,7 +38,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     static QPoint CurrentPoint;
 
     //If sync is on, don't take in commands
-    if(initiate)
+    if(stop)
     {
         if(event->x()<=width() && event->y()<=height())
         {
@@ -69,7 +69,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     static QPoint CurrentPoint;
 
      //If sync is on, don't take in commands
-    if(initiate)
+    if(stop)
     {
         if((event->button()==Qt::LeftButton))
         {
@@ -102,7 +102,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     static QMutex mutex;
 
     //If R is pressed, clear Image and emit signal for other window to do the same
-    if(event->key() == Qt::Key_R)
+    if((event->key() == Qt::Key_R) && stop)
     {
         mutex.lock();
         Image.fill(Qt::white);
@@ -118,7 +118,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     else if(event->key() == Qt::Key_Alt)
         doClose = true;
     //f11 for FullScreen
-    else if(event->key() == Qt::Key_F11)
+    else if(event->key() == Qt::Key_F11 && stop)
     {
         if(isFullScreen())
             showNormal();
@@ -143,35 +143,41 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
     static QMutex mutex;
 
-    mutex.lock();
-    if( (Image.width()<width()) || (Image.height()<height()) )
-    {
-        int16_t oldX = event->oldSize().width();
-        int16_t oldY = event->oldSize().height();
+    //If sync is on, don't take in commands
+   if(stop)
+   {
+        mutex.lock();
+        if( (Image.width()<width()) || (Image.height()<height()) )
+        {
+            int16_t oldX = event->oldSize().width();
+            int16_t oldY = event->oldSize().height();
 
-        //Resized Image baground is black
-        Image = Image.copy(0,0,width(),height());
+            //Resized Image baground is black
+            Image = Image.copy(0,0,width(),height());
 
-        //So we need to paint those areas
-        static QPainter painter;
-        painter.begin(&Image);
-        painter.fillRect(0,oldY,width(),(height()-oldY),Qt::white);
-        painter.fillRect(oldX,0,(width()-oldX),oldY,Qt::white);
-        painter.end();
-    }
-    mutex.unlock();
+            //So we need to paint those areas
+            static QPainter painter;
+            painter.begin(&Image);
+            painter.fillRect(0,oldY,width(),(height()-oldY),Qt::white);
+            painter.fillRect(oldX,0,(width()-oldX),oldY,Qt::white);
+            painter.end();
+        }
+        mutex.unlock();
 
-    while(BCP_SendThread->isRunning()){}
-    if(isFullScreen())
-        BCP_SendThread->setOP_code(7); //Max window
-    else
-    {
-        //Resize Window OP_code
-        BCP_SendThread->setOP_code(6);
-        BCP_SendThread->setData1(event->size().width());
-        BCP_SendThread->setData2(event->size().height());
-    }
-    BCP_SendThread->start();
+        while(BCP_SendThread->isRunning()){}
+        if(isFullScreen())
+            BCP_SendThread->setOP_code(7); //Max window
+        else
+        {
+            //Resize Window OP_code
+            BCP_SendThread->setOP_code(6);
+            BCP_SendThread->setData1(event->size().width());
+            BCP_SendThread->setData2(event->size().height());
+        }
+        BCP_SendThread->start();
+   }
+   else
+       event->ignore();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -181,16 +187,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     BCP_SendThread->setOP_code(3);
     BCP_SendThread->start();
     event->accept();
-}
-
-//If parity was wrong, Resend
-void MainWindow::PARITY_IN(const bool bit)
-{
-    if(bit)
-    {
-        while(BCP_SendThread->isRunning()){}
-        BCP_SendThread->Resend();
-    }
 }
 
 void MainWindow::set()
@@ -211,83 +207,84 @@ void MainWindow::SyncImages()
     static uint16_t i(0), j(0);
     static bool skiped(false);
 
-    if(!stop){
-    //Makes reveiver thread ready to take pixel data
-    if(initiate)
+    if(!stop)
     {
-        BCP_SendThread->setOP_code(9);
-        mutex.lock();
-        BCP_SendThread->setData1(Image.width());
-        BCP_SendThread->setData2(Image.height());
-        mutex.unlock();
-        BCP_SendThread->start();
-    }
-
-    //Starts sending pixel data
-    if(!initiate)
-    {
-        //Keep going through pixels, until finding one that isn't white
-        while(Image.pixel(i,j) == 4294967295)
+        //Makes reveiver thread ready to take pixel data
+        if(initiate)
         {
-            if(i<Image.width())
-                i++;
-            if(i==Image.width())
-            {
-                j++;
-                i = 0;
-            }
-            skiped = true;
-            if(j == Image.height())
-            {
-                i = 0;
-                j = Image.height();
-                break;
-            }
-        }
-
-        if(skiped)
-        {
-            //Send new position
-            //qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
-            BCP_SendThread->setOP_code(10);
-            BCP_SendThread->setData1(i);
-            BCP_SendThread->setData2(j);
-            BCP_SendThread->start();
-            skiped = false;
-        }
-        else
-        {
-            //Send pixel data
-            //qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
             BCP_SendThread->setOP_code(9);
-            BCP_SendThread->setData1(Image.pixel(i,j) & 0xFFFF);
-            BCP_SendThread->setData2((Image.pixel(i,j)>>16) & (0xFFFF));
+            mutex.lock();
+            BCP_SendThread->setData1(Image.width());
+            BCP_SendThread->setData2(Image.height());
+            mutex.unlock();
             BCP_SendThread->start();
+        }
 
-            //Goes one pixel ahed
-            if(i<Image.width())
-                i++;
-            if(i==Image.width())
+        //Starts sending pixel data
+        if(!initiate)
+        {
+            //Keep going through pixels, until finding one that isn't white
+            while(Image.pixel(i,j) == 4294967295)
             {
-                j++;
-                i = 0;
+                if(i<Image.width())
+                    i++;
+                if(i==Image.width())
+                {
+                    j++;
+                    i = 0;
+                }
+                skiped = true;
+                if(j == Image.height())
+                {
+                    i = 0;
+                    j = Image.height();
+                    break;
+                }
             }
-            if(j == Image.height())
+
+            if(skiped)
             {
-                i = 0;
-                j = Image.height();
+                //Send new position
+                //qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
+                BCP_SendThread->setOP_code(10);
+                BCP_SendThread->setData1(i);
+                BCP_SendThread->setData2(j);
+                BCP_SendThread->start();
+                skiped = false;
+            }
+            else
+            {
+                //Send pixel data
+                //qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
+                BCP_SendThread->setOP_code(9);
+                BCP_SendThread->setData1(Image.pixel(i,j) & 0xFFFF);
+                BCP_SendThread->setData2((Image.pixel(i,j)>>16) & (0xFFFF));
+                BCP_SendThread->start();
+
+                //Goes one pixel ahed
+                if(i<Image.width())
+                    i++;
+                if(i==Image.width())
+                {
+                    j++;
+                    i = 0;
+                }
+                if(j == Image.height())
+                {
+                    i = 0;
+                    j = Image.height();
+                }
             }
         }
+        if(initiate)
+            initiate = false;
+        if(j == Image.height())
+        {
+            initiate = true;
+            i = 0; j = 0; skiped = false;
+            stop = true;
+        }
     }
-    if(initiate)
-        initiate = false;
-    if(j == Image.height())
-    {
-        initiate = true;
-        i = 0; j = 0; skiped = false;
-        stop = true;
-    }
-  }
 }
 
 void MainWindow::setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs)

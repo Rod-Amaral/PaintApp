@@ -17,6 +17,8 @@ public:
     ChildWindow(QWidget* const parent = 0);
     ~ChildWindow();
 
+    bool initiate;
+
     //Holds pen details, used in painting
     QBrush brush;
     QPen pen;
@@ -44,12 +46,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
 
-public slots:
-    void IN_BIT(const bool bit);
-
-signals:
-    void PARITY_SEND(const bool bit);
-    void SendPixel();
 };
 
 #endif

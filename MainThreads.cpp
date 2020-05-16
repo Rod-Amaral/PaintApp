@@ -71,29 +71,23 @@ bool ParityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16
 
 void mainSend::run()
 {
-    //Send OP_code
-    emit Window->SEND_BIT((bool)(OP_code & 1));
-    emit Window->SEND_BIT((bool)(OP_code & 2));
-    emit Window->SEND_BIT((bool)(OP_code & 4));
-    emit Window->SEND_BIT((bool)(OP_code & 8));
+    static QMutex mutex;
+    qDebug() << "SENDING!!";
 
-    //Parity bit
-    emit Window->SEND_BIT(ParityCalculation(OP_code,data1,data2));
+    for(size_t i = 0; i<4; i++)
+        SEND_BIT( (OP_code>>i) & 1 );
 
-    //Send data
-    if((OP_code>1 && OP_code <4) || (OP_code == 7))
-        emit Window->SEND_BIT(0);
+    SEND_BIT(ParityCalculation(OP_code,data1,data2)); //parity
+
+    if( (OP_code>1 && OP_code <4) || (OP_code == 7) )
+        SEND_BIT(0);
     else
     {
         for(size_t i = 0; i<16; i++)
-            emit Window->SEND_BIT((bool)1&(data1 >> i));
+            SEND_BIT( (data1>>i) & 1 );
         for(size_t i = 0; i<16; i++)
-            emit Window->SEND_BIT((bool)1&(data2 >> i));
+            SEND_BIT( (data2>>i) & 1 );
     }
-
-    //Hold last two commands and data, in case of parity fail, to resend them
-    previous_data1 = current_data1; previous_data2 = current_data2; previous_OP = current_OP;
-    current_data1 = data1; current_data2 = data2; current_OP = OP_code;
     data1 = 0; data2 = 0;
 }
 

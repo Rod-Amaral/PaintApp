@@ -9,7 +9,6 @@
 #include "MainThreads.h"
 
 //Main Window class
-class ChildWindow;
 class MainWindow : public QWidget
 {
     Q_OBJECT
@@ -20,6 +19,7 @@ public:
 
     //Used to initiate A Sync command, and prevent the rest of the program from running
     bool initiate;
+    //Stops Syncing
     bool stop;
 
     //Used to know if the left button was pressed
@@ -74,12 +74,10 @@ public slots:
     void setPenStyle(Qt::PenStyle ps);
     void setPenCapStyle(Qt::PenCapStyle pcs);
     void setPenJoinStyle(Qt::PenJoinStyle pjs);
-    void PARITY_IN(const bool bit);
 
     void SyncImages();
 
 signals:
-    void SEND_BIT(const bool bit);
     void toggleSettingsWindow(const int x, const int y);
     void closeSettingsWindow();
 };

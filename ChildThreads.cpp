@@ -103,184 +103,202 @@ void childReceive::run()
     static QMutex mutex;
 
     //qDebug() << "First Send:\n" << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;
-
-    //First 4 bits received, determine the OP code, 5th for parity
-    if(OP_or_DATA)
+    while(1)
     {
-        if(i<OP_code_bitsize)
+        while(i<32)
         {
-            OP_code += (bit<<i);
-            i++;
-        }
-        else if(i == OP_code_bitsize) //parity
-        {
-            parity = bit;
-            i++;
-        }
-        else
-        {
-            OP_or_DATA = false;
-            i = 0;
-        }
-    }
-
-    //Here we receive data, if any
-    if(!OP_or_DATA)
-    {
-        //No data to be received
-        if(OP_code==2 || OP_code==3 || OP_code==7)
-            executeCommand = true;
-        //data to be received
-        else
-        {
-            if(i<16)
+            mutex.lock();
+            if(DO_READ)
             {
-                data1 += (bit<<i);
-                i++;
-            }
-            else
-            {
-                data2 += (bit << (i-16));
-                i++;
-                if(i==32)
-                    executeCommand = true;
-            }
-        }
-    }
-
-    //Here we esxute the command
-    if(executeCommand)
-    {
-        static bool parityFail_once(true); //Used to make a parity erro at the beginning
-
-        if(parityFail_once)
-        {
-            OP_code++;
-            parityFail_once = false;
-        }
-
-        if(parity == parityCalculation(OP_code,data1,data2))
-        {
-            /*qDebug() << "Parity Success!";
-            qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
-            switch(OP_code)
-            {
-            case 0:             //DrawPoint, OPcode: 0  data1->x-coordinate  data2->y-coordinate
-                Window->PaintPoint(QPoint(data1,data2));
-                break;
-
-            case 1:             //DrawLine, OPcode: 1  data1->x-coordinate  data2->y-coordinate
-                Window->PaintLine(QPoint(data1,data2));
-                break;
-
-            case 2:             //ClearScreen, OPcode: 2  no data
-                Window->ClearImage();
-                break;
-
-            case 3:             //CloseWindow, OPcode: 3 no data
-                Window->close();
-                break;
-
-            case 4:             //SetBrushPen, OPcode: 4  see data info below
-                mutex.lock();
-                Window->brush.setStyle(Qt::BrushStyle(data1 & 0b11111));
-                Window->pen.setBrush(Window->brush);
-                Window->pen.setStyle(Qt::PenStyle( ((data1>>5) & 0b111) ));
-                Window->pen.setWidth(data1>>8);
-                Window->pen.setCapStyle(Qt::PenCapStyle( (data2 & 0b11)*0x10 ));
-                //This following one is good ;)   check Qt:PenJoinStyle enum values
-                Window->pen.setJoinStyle(Qt::PenJoinStyle( ((data2 & 0b1100)!=0b1100) ? ((data2 & 0b1100)*0x10) : (0x100) ));
-                mutex.unlock();
-            /*
-                data1 bits->
-                [1:5] BrushStyle, [6:8] PenStyle, [9:16] pen Width
-                data2 bits->
-                [1:2] PenCapStyle, [3:4] PenjoinStyle
-            */
-                break;
-
-            case 5:             //ChangeColour, OPcode: 5  data1->LS bytes  data2->MS bytes,  32bit value total
-                mutex.lock();
-                Window->brush.setColor(((uint16_t)data1 + ((uint16_t)data2 << 16)));
-                Window->pen.setBrush(Window->brush);
-                mutex.unlock();
-                break;
-
-            case 6:             //Resize, OPcode: 6  data1->x-coordinate  data2->y-coordinate
-                Window->showNormal();
-                mutex.lock();
-                Window->resize(data1, data2);
-                mutex.unlock();
-                break;
-
-            case 7:             //FullScreen, OPcode: 7  no data
-                Window->showFullScreen();
-                break;
-
-            case 8:             //Set LastPoint, OPcode: 8  data1->x-coordinate  data2->y-coordinate
-                Window->LastPoint.setX(data1);
-                Window->LastPoint.setY(data2);
-                break;
-
-            case 9:             //Sync Image data, OPcode: 9  data1->LS bytes  data2->MS bytes,  32bit value total
-                static bool getPixelAmount(true);
-
-                if(getPixelAmount)
+                //First 4 bits received, determine the OP code, 5th for parity
+                if(OP_or_DATA)
                 {
-                    width = data1;
-                    height = data2;
-                    //qDebug() << "Width: " << width << "Height: " << height;
-                    getPixelAmount = false;
-                }
-                else
-                {
-                    //qDebug() << "RECEIVED: " << "i: " << ii << " j: " << jj << " color: " <<
-                    //            (QRgb)(uint32_t)(((uint16_t)data1)+(((uint16_t)data2)<<16));
-                    Window->Image.setPixel(ii,jj,((uint16_t)data1)+(((uint16_t)data2)<<16));
-                    if(ii<width)
-                        ii++;
-                    if(ii==width)
+                    if(i<OP_code_bitsize)
                     {
-                        jj++;
-                        ii = 0;
+                        OP_code += (BIT<<i);
+                        i++;
+                    }
+                    else
+                    {
+                        qDebug() << "OP: " << OP_code;
+                        parity = BIT;
+                        i = 0;
+                        OP_or_DATA = false;
+                    }
+                }
+                else  //Here we receive data, if any
+                {
+                    //No data to be received
+                    if(OP_code==2 || OP_code==3 || OP_code==7)
+                    {
+                        i = 31;
                     }
 
+                    //Data to be received
+                    if(i<16)
+                        data1 += (BIT<<(i));
+                    else
+                    {
+                        data2 += (BIT<<(i-16));
+                        if(i==31)
+                            executeCommand = true;
+                    }
+                    i++;
                 }
-                if(height == jj)
-                {
-                    width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
-                    Window->update();
-                }
-                else
-                    Window->SendPixel(); //Handhske, can send next pixel
-                break;
-
-            case 10:            //Skip Pixel, OPcode: 10  data1-> ii  dat2-> jj
-                //qDebug() << "SKIPPED : " << "i: " << data1 << " j: " << data2;
-                ii = data1;
-                jj = data2;
-                if(jj != height)
-                    Window->SendPixel(); //Handhske, can send next pixel
-                else
-                {
-                    width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
-                    Window->update();
-                }
+                DO_READ = false;
             }
-            Window->PARITY_SEND(0);
+            mutex.unlock();
+            QThread::usleep(400);
         }
-        else //If parity failed
-        {
-            if((OP_code==9) && (ii==1 && !jj))
-                ii--;
-            else if((OP_code==9) && !(ii==1 && !jj))
-                Backtrack(ii,jj,width);
+        i = 0;
 
-            /*qDebug() << "Parity Failed!";
-            qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
-            Window->PARITY_SEND(1);
+        qDebug() << (OP_code);
+        qDebug() << (bool)parity;
+        qDebug() << (uint32_t)data1;
+        qDebug() << (uint32_t)data2;
+
+
+
+        //Here we execute the command
+        if(executeCommand)
+        {
+            static bool parityFail_once(false); //Used to make a parity error at the beginning
+
+            if(parityFail_once)
+            {
+                OP_code++;
+                parityFail_once = false;
+            }
+
+            if(parity == parityCalculation(OP_code,data1,data2))
+            {
+                /*qDebug() << "Parity Success!";
+                qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
+                switch(OP_code)
+                {
+                case 0:             //DrawPoint, OPcode: 0  data1->x-coordinate  data2->y-coordinate
+                    Window->PaintPoint(QPoint(data1,data2));
+                    break;
+
+                case 1:             //DrawLine, OPcode: 1  data1->x-coordinate  data2->y-coordinate
+                    Window->PaintLine(QPoint(data1,data2));
+                    break;
+
+                case 2:             //ClearScreen, OPcode: 2  no data
+                    Window->ClearImage();
+                    break;
+
+                case 3:             //CloseWindow, OPcode: 3 no data
+                    Window->close();
+                    break;
+
+                case 4:             //SetBrushPen, OPcode: 4  see data info below
+                    mutex.lock();
+                    Window->brush.setStyle(Qt::BrushStyle(data1 & 0b11111));
+                    Window->pen.setBrush(Window->brush);
+                    Window->pen.setStyle(Qt::PenStyle( ((data1>>5) & 0b111) ));
+                    Window->pen.setWidth(data1>>8);
+                    Window->pen.setCapStyle(Qt::PenCapStyle( (data2 & 0b11)*0x10 ));
+                    //This following one is good ;)   check Qt:PenJoinStyle enum values
+                    Window->pen.setJoinStyle(Qt::PenJoinStyle( ((data2 & 0b1100)!=0b1100) ? ((data2 & 0b1100)*0x10) : (0x100) ));
+                    mutex.unlock();
+                /*
+                    data1 bits->
+                    [1:5] BrushStyle, [6:8] PenStyle, [9:16] pen Width
+                    data2 bits->
+                    [1:2] PenCapStyle, [3:4] PenjoinStyle
+                */
+                    break;
+
+                case 5:             //ChangeColour, OPcode: 5  data1->LS bytes  data2->MS bytes,  32bit value total
+                    mutex.lock();
+                    Window->brush.setColor(((uint16_t)data1 + ((uint16_t)data2 << 16)));
+                    Window->pen.setBrush(Window->brush);
+                    mutex.unlock();
+                    break;
+
+                case 6:             //Resize, OPcode: 6  data1->x-coordinate  data2->y-coordinate
+                    Window->showNormal();
+                    mutex.lock();
+                    Window->resize(data1, data2);
+                    mutex.unlock();
+                    break;
+
+                case 7:             //FullScreen, OPcode: 7  no data
+                    Window->showFullScreen();
+                    break;
+
+                case 8:             //Set LastPoint, OPcode: 8  data1->x-coordinate  data2->y-coordinate
+                    Window->LastPoint.setX(data1);
+                    Window->LastPoint.setY(data2);
+                    break;
+
+                case 9:             //Sync Image data, OPcode: 9  data1->LS bytes  data2->MS bytes,  32bit value total
+                    static bool getPixelAmount(true);
+
+                    if(getPixelAmount)
+                    {
+                        width = data1;
+                        height = data2;
+                        //qDebug() << "Width: " << width << "Height: " << height;
+                        getPixelAmount = false;
+                        mutex.lock();
+                        Window->initiate = true;
+                        mutex.unlock();
+                    }
+                    else
+                    {
+                        //qDebug() << "RECEIVED: " << "i: " << ii << " j: " << jj << " color: " <<
+                        //            (QRgb)(uint32_t)(((uint16_t)data1)+(((uint16_t)data2)<<16));
+                        Window->Image.setPixel(ii,jj,((uint16_t)data1)+(((uint16_t)data2)<<16));
+                        if(ii<width)
+                            ii++;
+                        if(ii==width)
+                        {
+                            jj++;
+                            ii = 0;
+                        }
+
+                    }
+                    if(height == jj)
+                    {
+                        width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
+                        mutex.lock();
+                        Window->initiate = true;
+                        mutex.unlock();
+                        Window->update();
+                    }
+                    else
+                    {}//Window->SendPixel(); //Handhske, can send next pixel
+                    break;
+
+                case 10:            //Skip Pixel, OPcode: 10  data1-> ii  dat2-> jj
+                    //qDebug() << "SKIPPED : " << "i: " << data1 << " j: " << data2;
+                    ii = data1;
+                    jj = data2;
+                    if(jj != height)
+                    {}//Window->SendPixel(); //Handhske, can send next pixel
+                    else
+                    {
+                        width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
+                        mutex.lock();
+                        Window->initiate = true;
+                        mutex.unlock();
+                        Window->update();
+                    }
+                }
+                RESEND_SEND(false);
+            }
+            else //If parity failed
+            {
+                qDebug() << "Parity Failed!";
+                qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2 << " parity: " << parity;
+
+                RESEND_SEND(true);
+            }
+            OP_code = 0; data1 = 0; data2 = 0; i = 0; parity = 0;
+            executeCommand = false; OP_or_DATA = true;
         }
-        i = 0; OP_or_DATA = true; executeCommand = false; OP_code = 0; data1 = 0; data2 = 0; parity = 0;
     }
 }
 

@@ -1,6 +1,6 @@
 by: Rod-Amaral
 
-- Cleaned up comments
+-
 
 NOTES:
 QImage is optmimized for I/O, great!
