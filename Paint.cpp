@@ -18,13 +18,7 @@ int main(int argc, char** argv)
 
     SettingsMenu Settings(&window1);
 
-    //Boolean Communication Protocol - BCP
-    /*QObject::connect(&window1, &MainWindow::SEND_BIT,
-                     &window2, &ChildWindow::IN_BIT);
-
-    QObject::connect(&window2, &ChildWindow::PARITY_SEND,
-                     &window1, &MainWindow::PARITY_IN);
-
+    /*
     QObject::connect(&window2, &ChildWindow::SendPixel,
                      &window1, &MainWindow::SyncImages);*/
 
@@ -42,25 +36,4 @@ int main(int argc, char** argv)
     window1.show();
 
 	return app.exec();
-}
-
-void mainSend::SEND_BIT(bool bit)
-{
-    static QMutex mutex;
-
-    mutex.lock();
-    BIT = bit;
-    DO_READ = true;
-    mutex.unlock();
-
-    while(DO_READ){}
-}
-
-void childReceive::RESEND_SEND(const bool bit)
-{
-    static QMutex mutex;
-
-    mutex.lock();
-    RESEND = bit;
-    mutex.unlock();
 }

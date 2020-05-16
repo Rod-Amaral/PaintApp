@@ -45,8 +45,7 @@ void MainImage_Thread::setToggle(const bool t)
 
 
 mainSend::mainSend(MainWindow* const window)
-    : Window(window), OP_code(0), data1(0), data2(0), previous_OP(0), current_OP(0),
-      previous_data1(0), current_data1(0), previous_data2(0), current_data2(0)
+    : Window(window), OP_code(0), data1(0), data2(0)
 {}
 
 bool ParityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16_t data2)
@@ -72,23 +71,54 @@ bool ParityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16
 void mainSend::run()
 {
     static QMutex mutex;
-    qDebug() << "SENDING!!";
+    //qDebug() << "SENDING!!";
 
-    for(size_t i = 0; i<4; i++)
-        SEND_BIT( (OP_code>>i) & 1 );
+    static uint8_t current_OP_code(OP_code);
+    static uint16_t current_data1(data1), current_data2(data2);
+    static uint8_t old_OP_code(OP_code);
+    static uint16_t old_data1(data1), old_data2(data2);
 
-    SEND_BIT(ParityCalculation(OP_code,data1,data2)); //parity
-
-    if( (OP_code>1 && OP_code <4) || (OP_code == 7) )
-        SEND_BIT(0);
-    else
+    do
     {
-        for(size_t i = 0; i<16; i++)
-            SEND_BIT( (data1>>i) & 1 );
-        for(size_t i = 0; i<16; i++)
-            SEND_BIT( (data2>>i) & 1 );
-    }
-    data1 = 0; data2 = 0;
+        for(size_t i = 0; i<4; i++)
+            SEND_BIT( (OP_code>>i) & 1 );
+
+        SEND_BIT(ParityCalculation(OP_code,data1,data2)); //parity
+
+        if( (OP_code>1 && OP_code <4) || (OP_code == 7) )
+            SEND_BIT(0);
+        else
+        {
+            for(size_t i = 0; i<16; i++)
+                SEND_BIT( (data1>>i) & 1 );
+            for(size_t i = 0; i<16; i++)
+                SEND_BIT( (data2>>i) & 1 );
+        }
+        old_OP_code = current_OP_code; old_data1 = current_data1; old_data2 = current_data2;
+        current_OP_code = OP_code; current_data1 = data1; current_data2 = data2;
+        data1 = 0; data2 = 0;
+
+        if(RESEND)
+        {
+            qDebug() << "boyo";
+            setOP_code(old_OP_code);
+            setData1(old_data1);
+            setData2(old_data2);
+        }
+
+    } while(RESEND);
+}
+
+void mainSend::SEND_BIT(bool bit)
+{
+    static QMutex mutex;
+
+    mutex.lock();
+    BIT = bit;
+    DO_READ = true;
+    mutex.unlock();
+
+    while(DO_READ){}
 }
 
 void mainSend::setOP_code(const uint8_t op)
@@ -113,30 +143,6 @@ void mainSend::setData2(const int16_t data)
     mutex.lock();
     data2 = data;
     mutex.unlock();
-}
-
-//Resends previous two commands
-void mainSend::Resend()
-{
-    static QMutex mutex;
-    mutex.lock();
-    uint8_t holdCurrent_OP = current_OP;
-    int16_t holdCurrent_data1 = current_data1;
-    int16_t holdCurrent_data2 = current_data2;
-
-    setOP_code(previous_OP);
-    setData1(previous_data1);
-    setData2(previous_data2);
-    mutex.unlock();
-    start();
-
-    while(isRunning()){}
-    mutex.lock();
-    setOP_code(holdCurrent_OP);
-    setData1(holdCurrent_data1);
-    setData2(holdCurrent_data2);
-    mutex.unlock();
-    start();
 }
 
 /*

@@ -109,6 +109,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         mutex.unlock();
 
         //Clear Image OP code
+        while(BCP_SendThread->isRunning()){}
         BCP_SendThread->setOP_code(2);
         BCP_SendThread->start();
 
@@ -212,6 +213,7 @@ void MainWindow::SyncImages()
         //Makes reveiver thread ready to take pixel data
         if(initiate)
         {
+            while(BCP_SendThread->isRunning()){}
             BCP_SendThread->setOP_code(9);
             mutex.lock();
             BCP_SendThread->setData1(Image.width());
@@ -246,6 +248,7 @@ void MainWindow::SyncImages()
             {
                 //Send new position
                 //qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
+                while(BCP_SendThread->isRunning()){}
                 BCP_SendThread->setOP_code(10);
                 BCP_SendThread->setData1(i);
                 BCP_SendThread->setData2(j);
@@ -256,6 +259,7 @@ void MainWindow::SyncImages()
             {
                 //Send pixel data
                 //qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
+                while(BCP_SendThread->isRunning()){}
                 BCP_SendThread->setOP_code(9);
                 BCP_SendThread->setData1(Image.pixel(i,j) & 0xFFFF);
                 BCP_SendThread->setData2((Image.pixel(i,j)>>16) & (0xFFFF));

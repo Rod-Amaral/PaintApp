@@ -1,6 +1,6 @@
 by: Rod-Amaral
 
--
+- New BCP, now with parity working
 
 NOTES:
 QImage is optmimized for I/O, great!

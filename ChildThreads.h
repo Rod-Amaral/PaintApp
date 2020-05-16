@@ -44,12 +44,10 @@ public:
 
     void run() override;
 
-    void setBIT(const bool b);
     void RESEND_SEND(const bool bit);
 
 private:
     ChildWindow* Window;
-    bool bit;
 };
 
 

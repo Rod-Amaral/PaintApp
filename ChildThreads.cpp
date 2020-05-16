@@ -120,7 +120,6 @@ void childReceive::run()
                     }
                     else
                     {
-                        qDebug() << "OP: " << OP_code;
                         parity = BIT;
                         i = 0;
                         OP_or_DATA = false;
@@ -150,19 +149,16 @@ void childReceive::run()
             mutex.unlock();
             QThread::usleep(400);
         }
-        i = 0;
 
         qDebug() << (OP_code);
         qDebug() << (bool)parity;
         qDebug() << (uint32_t)data1;
         qDebug() << (uint32_t)data2;
 
-
-
         //Here we execute the command
         if(executeCommand)
         {
-            static bool parityFail_once(false); //Used to make a parity error at the beginning
+            static bool parityFail_once(true); //Used to make a parity error at the beginning
 
             if(parityFail_once)
             {
@@ -298,11 +294,16 @@ void childReceive::run()
             }
             OP_code = 0; data1 = 0; data2 = 0; i = 0; parity = 0;
             executeCommand = false; OP_or_DATA = true;
+
         }
     }
 }
 
-void childReceive::setBIT(const bool b)
+void childReceive::RESEND_SEND(const bool bit)
 {
-    bit = b;
+    static QMutex mutex;
+
+    mutex.lock();
+    RESEND = bit;
+    mutex.unlock();
 }
