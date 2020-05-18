@@ -208,7 +208,7 @@ void MainWindow::SyncImages()
     static uint16_t i(0), j(0);
     static bool skiped(false);
 
-    if(!stop)
+    while(!stop)
     {
         //Makes reveiver thread ready to take pixel data
         if(initiate)
@@ -247,7 +247,6 @@ void MainWindow::SyncImages()
             if(skiped)
             {
                 //Send new position
-                //qDebug() << "SKIP SENT:" << "i: " << i << " j: " << j;
                 while(BCP_SendThread->isRunning()){}
                 BCP_SendThread->setOP_code(10);
                 BCP_SendThread->setData1(i);
@@ -258,7 +257,6 @@ void MainWindow::SyncImages()
             else
             {
                 //Send pixel data
-                //qDebug() << "SENT:     " << "i: " << i << " j: " << j << " color: " << (QRgb)Image.pixel(i,j);
                 while(BCP_SendThread->isRunning()){}
                 BCP_SendThread->setOP_code(9);
                 BCP_SendThread->setData1(Image.pixel(i,j) & 0xFFFF);

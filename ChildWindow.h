@@ -11,12 +11,11 @@
 //Child window class
 class ChildWindow : public QWidget
 {
-    Q_OBJECT
-
 public:
     ChildWindow(QWidget* const parent = 0);
     ~ChildWindow();
 
+    //Used to initiate A Sync command, and prevent the rest of the program from running
     bool initiate;
 
     //Holds pen details, used in painting

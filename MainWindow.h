@@ -50,6 +50,7 @@ public:
     void setPen(Qt::BrushStyle bs, Qt::PenStyle ps, uint8_t penWidth, Qt::PenCapStyle pcs, Qt::PenJoinStyle pjs);
     void set();
     void ClearImage();
+    void SyncImages();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -74,8 +75,6 @@ public slots:
     void setPenStyle(Qt::PenStyle ps);
     void setPenCapStyle(Qt::PenCapStyle pcs);
     void setPenJoinStyle(Qt::PenJoinStyle pjs);
-
-    void SyncImages();
 
 signals:
     void toggleSettingsWindow(const int x, const int y);

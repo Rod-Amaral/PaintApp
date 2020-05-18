@@ -102,9 +102,9 @@ void childReceive::run()
 
     static QMutex mutex;
 
-    //qDebug() << "First Send:\n" << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;
     while(1)
     {
+        //Collection of data
         while(i<32)
         {
             mutex.lock();
@@ -147,13 +147,9 @@ void childReceive::run()
                 DO_READ = false;
             }
             mutex.unlock();
-            QThread::usleep(400);
         }
 
-        qDebug() << (OP_code);
-        qDebug() << (bool)parity;
-        qDebug() << (uint32_t)data1;
-        qDebug() << (uint32_t)data2;
+        qDebug() << (OP_code) << '\n' << (bool)parity << '\n' << (uint32_t)data1 << '\n' << (uint32_t)data2;
 
         //Here we execute the command
         if(executeCommand)
@@ -168,8 +164,6 @@ void childReceive::run()
 
             if(parity == parityCalculation(OP_code,data1,data2))
             {
-                /*qDebug() << "Parity Success!";
-                qDebug() << "OP_code: " << OP_code << " data1: " << data1 << " data2: " << data2;*/
                 switch(OP_code)
                 {
                 case 0:             //DrawPoint, OPcode: 0  data1->x-coordinate  data2->y-coordinate
@@ -236,7 +230,6 @@ void childReceive::run()
                     {
                         width = data1;
                         height = data2;
-                        //qDebug() << "Width: " << width << "Height: " << height;
                         getPixelAmount = false;
                         mutex.lock();
                         Window->initiate = true;
@@ -244,8 +237,6 @@ void childReceive::run()
                     }
                     else
                     {
-                        //qDebug() << "RECEIVED: " << "i: " << ii << " j: " << jj << " color: " <<
-                        //            (QRgb)(uint32_t)(((uint16_t)data1)+(((uint16_t)data2)<<16));
                         Window->Image.setPixel(ii,jj,((uint16_t)data1)+(((uint16_t)data2)<<16));
                         if(ii<width)
                             ii++;
@@ -264,17 +255,12 @@ void childReceive::run()
                         mutex.unlock();
                         Window->update();
                     }
-                    else
-                    {}//Window->SendPixel(); //Handhske, can send next pixel
                     break;
 
                 case 10:            //Skip Pixel, OPcode: 10  data1-> ii  dat2-> jj
-                    //qDebug() << "SKIPPED : " << "i: " << data1 << " j: " << data2;
                     ii = data1;
                     jj = data2;
-                    if(jj != height)
-                    {}//Window->SendPixel(); //Handhske, can send next pixel
-                    else
+                    if(jj == height)
                     {
                         width = 0; height = 0; ii = 0; jj = 0; getPixelAmount = true;
                         mutex.lock();

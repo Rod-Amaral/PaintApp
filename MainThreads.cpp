@@ -71,12 +71,6 @@ bool ParityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16
 void mainSend::run()
 {
     static QMutex mutex;
-    //qDebug() << "SENDING!!";
-
-    static uint8_t current_OP_code(OP_code);
-    static uint16_t current_data1(data1), current_data2(data2);
-    static uint8_t old_OP_code(OP_code);
-    static uint16_t old_data1(data1), old_data2(data2);
 
     do
     {
@@ -99,12 +93,7 @@ void mainSend::run()
         data1 = 0; data2 = 0;
 
         if(RESEND)
-        {
-            qDebug() << "boyo";
-            setOP_code(old_OP_code);
-            setData1(old_data1);
-            setData2(old_data2);
-        }
+            Resend();
 
     } while(RESEND);
 }
@@ -119,6 +108,76 @@ void mainSend::SEND_BIT(bool bit)
     mutex.unlock();
 
     while(DO_READ){}
+}
+
+void mainSend::Resend()
+{
+    static QMutex mutex;
+
+    mutex.lock();
+    uint8_t hold_OP_code(current_OP_code);
+    uint16_t hold_data1(current_data1), hold_data2(current_data2);
+
+    setOP_code(old_OP_code);
+    setData1(old_data1);
+    setData2(old_data2);
+    mutex.unlock();
+
+    do
+    {
+        for(size_t i = 0; i<4; i++)
+            SEND_BIT( (OP_code>>i) & 1 );
+
+        SEND_BIT(ParityCalculation(OP_code,data1,data2)); //parity
+
+        if( (OP_code>1 && OP_code <4) || (OP_code == 7) )
+            SEND_BIT(0);
+        else
+        {
+            for(size_t i = 0; i<16; i++)
+                SEND_BIT( (data1>>i) & 1 );
+            for(size_t i = 0; i<16; i++)
+                SEND_BIT( (data2>>i) & 1 );
+        }
+        old_OP_code = current_OP_code; old_data1 = current_data1; old_data2 = current_data2;
+        current_OP_code = OP_code; current_data1 = data1; current_data2 = data2;
+        data1 = 0; data2 = 0;
+
+        if(RESEND)
+            Resend();
+
+    } while(RESEND);
+
+    mutex.lock();
+    setOP_code(hold_OP_code);
+    setData1(hold_data1);
+    setData2(hold_data2);
+    mutex.unlock();
+
+    do
+    {
+        for(size_t i = 0; i<4; i++)
+            SEND_BIT( (OP_code>>i) & 1 );
+
+        SEND_BIT(ParityCalculation(OP_code,data1,data2)); //parity
+
+        if( (OP_code>1 && OP_code <4) || (OP_code == 7) )
+            SEND_BIT(0);
+        else
+        {
+            for(size_t i = 0; i<16; i++)
+                SEND_BIT( (data1>>i) & 1 );
+            for(size_t i = 0; i<16; i++)
+                SEND_BIT( (data2>>i) & 1 );
+        }
+        old_OP_code = current_OP_code; old_data1 = current_data1; old_data2 = current_data2;
+        current_OP_code = OP_code; current_data1 = data1; current_data2 = data2;
+        data1 = 0; data2 = 0;
+
+        if(RESEND)
+            Resend();
+
+    } while(RESEND);
 }
 
 void mainSend::setOP_code(const uint8_t op)

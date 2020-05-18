@@ -48,6 +48,7 @@ public:
     void setOP_code(const uint8_t op);
     void setData1(const int16_t data);
     void setData2(const int16_t data);
+    void Resend();
 
     void SEND_BIT(bool bit);
 
@@ -56,6 +57,13 @@ private:
     uint8_t OP_code;
     int16_t data1;
     int16_t data2;
+
+    //In case of parity error
+    uint8_t current_OP_code;
+    uint16_t current_data1, current_data2;
+    uint8_t old_OP_code;
+    uint16_t old_data1, old_data2;
+
 };
 
 #endif // TMAINTHREADS_H

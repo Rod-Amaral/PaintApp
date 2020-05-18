@@ -495,7 +495,7 @@ void SettingsMenu::setPenStyle_names(PushButton* const & buttons)
 
 void SettingsMenu::setPenCapStyle_names(PushButton* const & buttons)
 {
-    buttons[0].setText(tr("FlaCap"));
+    buttons[0].setText(tr("FlatCap"));
     buttons[1].setText(tr("SquareCap"));
     buttons[2].setText(tr("RoundCap"));
 }
