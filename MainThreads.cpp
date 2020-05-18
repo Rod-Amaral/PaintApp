@@ -71,7 +71,6 @@ bool ParityCalculation(const uint8_t OP_code, const uint16_t data1, const uint16
 void mainSend::run()
 {
     static QMutex mutex;
-
     do
     {
         for(size_t i = 0; i<4; i++)
@@ -107,7 +106,7 @@ void mainSend::SEND_BIT(bool bit)
     DO_READ = true;
     mutex.unlock();
 
-    while(DO_READ){}
+    while(DO_READ){QThread::usleep(1);}
 }
 
 void mainSend::Resend()

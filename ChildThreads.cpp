@@ -149,7 +149,7 @@ void childReceive::run()
             mutex.unlock();
         }
 
-        qDebug() << (OP_code) << '\n' << (bool)parity << '\n' << (uint32_t)data1 << '\n' << (uint32_t)data2;
+        //qDebug() << (OP_code) << '\n' << (bool)parity << '\n' << (uint32_t)data1 << '\n' << (uint32_t)data2;
 
         //Here we execute the command
         if(executeCommand)

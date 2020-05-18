@@ -1,6 +1,6 @@
 by: Rod-Amaral
 
-- Resizing is working, everything seems nominal now with new BCP mechanism
+- Bug fixing
 
 NOTES:
 QImage is optmimized for I/O, great!
