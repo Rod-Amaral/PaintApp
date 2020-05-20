@@ -1,8 +1,7 @@
 by: Rod-Amaral
 
-- Bug fixing
+- More, Bug fixing
+- Hand-In Prep
 
 NOTES:
-QImage is optmimized for I/O, great!
-Because QImage is a QPaintDevice subclass, QPainter can be used to draw directly onto images.
-When using QPainter on a QImage, the painting can be performed in another thread than the current GUI thread.
+Program might have some problems with newer version of Qt? Should work tho.

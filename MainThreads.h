@@ -5,7 +5,8 @@
 #include <QMutex>
 #include <QPoint>
 #include <QDebug>
-#include <chrono>
+#include <QWidget>
+#include <stdint.h>
 
 extern bool BIT;
 extern bool DO_READ;

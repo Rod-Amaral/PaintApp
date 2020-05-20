@@ -4,7 +4,7 @@ MainWindow::MainWindow(QWidget* const parent)
     : QWidget(parent), initiate(true), stop(true), brush(Qt::darkGreen, Qt::SolidPattern),
       pen(brush, 8, Qt::SolidLine, Qt::RoundCap), Image(X_leng, Y_leng, QImage::Format_RGB32)
 {
-    resize(X_leng,Y_leng);
+    this->resize(X_leng,Y_leng);
     ImageThread = new MainImage_Thread(this);
     BCP_SendThread = new mainSend(this);
 

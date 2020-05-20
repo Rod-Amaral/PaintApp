@@ -2,8 +2,10 @@
 #define CHILDTHREADS_H
 
 #include <QThread>
+#include <QWidget>
 #include <QMutex>
 #include <QPoint>
+#include <stdint.h>
 
 extern bool BIT;
 extern bool DO_READ;
